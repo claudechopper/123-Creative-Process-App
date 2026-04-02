@@ -41,7 +41,7 @@ export default function OnboardingPopup() {
           <div style={{
             fontSize: 28, fontWeight: 700,
             letterSpacing: '-0.5px',
-          }}><span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span></div>
+          }}><span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span></div>
         </div>
 
         {/* Section A: The Creative Process */}
@@ -61,18 +61,24 @@ export default function OnboardingPopup() {
             rest — subjects who slept on a problem were <strong>3x more likely</strong>{' '}
             to discover the solution. Your best ideas don't come while staring at the
             screen. They come after you step away and sleep on it.
+            What's more, your brain uses entirely different circuitry to create than
+            it does to critique — these two modes fight each other when forced together.
           </p>
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
-            Hemingway said <strong>"Write intoxicated. Edit sober."</strong> — raw
-            creation first, sharp refinement after. Anne Lamott, Natalie Goldberg,
-            Stephen King, and countless other celebrated writers all followed the same
-            method.
+            Hemingway was fabled to have said <strong>"Write intoxicated. Edit sober."</strong> —{' '}
+            <span style={{ color: '#5A8F6A', fontWeight: 600 }}>raw creation first</span>,{' '}
+            <span style={{ color: '#D4943A', fontWeight: 600 }}>sharp refinement</span> after.
+            Anne Lamott, Neil Young, Picasso, Ed Sheeran, Beethoven, and countless other
+            celebrated creators across every discipline all followed the same approach.
           </p>
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 18 }}>
-            Why? Because drafting and sharpening are two completely different frames
-            of mind, and the best artists know how to separate them.{' '}
+            Why? Because{' '}
+            <span style={{ color: '#5A8F6A', fontWeight: 600 }}>drafting</span> and{' '}
+            <span style={{ color: '#D4943A', fontWeight: 600 }}>sharpening</span> are
+            two completely different frames of mind, and the best artists know how to
+            separate them.{' '}
             <strong><em>The whole point is getting words out before your inner critic shows up.</em></strong>
           </p>
 
@@ -82,7 +88,7 @@ export default function OnboardingPopup() {
 
           {[
             { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write forward without editing. Build momentum.', color: '#5A8F6A' },
-            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#C96B6B' },
+            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#C0392B' },
             { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Cut, shape, polish.', color: '#D4943A' },
           ].map(step => (
             <div key={step.num} style={{
@@ -92,7 +98,7 @@ export default function OnboardingPopup() {
                 width: 28, height: 28, borderRadius: '50%', background: step.color,
                 color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 14, fontWeight: 700, flexShrink: 0,
-                textShadow: step.num === '1' ? '0 0 8px rgba(90,143,106,0.5)' : step.num === '2' ? '0 0 8px rgba(201,107,107,0.5)' : '0 0 8px rgba(212,148,58,0.5)',
+                textShadow: step.num === '1' ? '0 0 8px rgba(90,143,106,0.5)' : step.num === '2' ? '0 0 8px rgba(192,57,43,0.5)' : '0 0 8px rgba(212,148,58,0.5)',
               }}>{step.num}</div>
               <div>
                 <span style={{ fontWeight: 800, color: step.color, fontSize: 13, letterSpacing: '0.5px' }}>{step.stage}</span>
@@ -157,8 +163,8 @@ export default function OnboardingPopup() {
               lineHeight: 1.5,
             }}>
               <span style={{
-                fontWeight: 700, color: '#D4943A', whiteSpace: 'nowrap',
-                textShadow: '0 0 10px rgba(212,148,58,0.5), 0 0 20px rgba(212,148,58,0.2)',
+                fontWeight: 700, color: '#A8B4C4', whiteSpace: 'nowrap',
+                textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
               }}>{item.name}</span>
               <span style={{ color: '#6B5D4A' }}>— {item.desc}</span>
             </div>

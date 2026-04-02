@@ -128,7 +128,7 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -196,19 +196,19 @@ export default function GapMode({ onNavigate, onRefine }) {
               marginBottom: 16,
               opacity: isDraggedProject ? 0.4 : 1,
               borderTop: isDragOverProject ? '2px solid #A8B4C4' : '2px solid transparent',
-            }}
-              draggable={groups.length > 1}
-              onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
-              onDragOver={(e) => handleProjectDragOver(e, group.project.id)}
-              onDrop={(e) => handleProjectDrop(e, group.project.id)}
-              onDragEnd={handleProjectDragEnd}
-            >
+            }}>
               {/* Project header */}
               {groups.length > 1 && (
-                <div style={{
+                <div
+                  draggable
+                  onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
+                  onDragOver={(e) => handleProjectDragOver(e, group.project.id)}
+                  onDrop={(e) => handleProjectDrop(e, group.project.id)}
+                  onDragEnd={handleProjectDragEnd}
+                  style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
                   fontSize: 13, fontWeight: 600, color: '#4A5E48',
-                  userSelect: 'none',
+                  userSelect: 'none', cursor: 'grab',
                 }}>
                   {/* Arrow buttons for project reorder */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>

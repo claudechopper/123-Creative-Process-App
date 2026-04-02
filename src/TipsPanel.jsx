@@ -2,32 +2,32 @@ const FLOW_TIPS = [
   {
     title: "Don't stop moving",
     body: "Peter Elbow's freewriting rule: if you're stuck, write \"I don't know what to write\" until something comes. The act of writing summons the words.",
-    prompt: "I don't know what to write yet, but I'm going to keep going because...",
+    prompt: "[Tip: I don't know what to write yet, but I'm going to keep going because...]",
   },
   {
     title: "Start with a question",
     body: "Begin with \"What am I trying to say?\" and answer it. Questions activate your brain's search mode.",
-    prompt: "What am I really trying to say? The answer is...",
+    prompt: "[Tip: What am I really trying to say? The answer is...]",
   },
   {
     title: "Use a prompt",
     body: "\"Write about a time when...\" or \"The thing I can't stop thinking about is...\" A single sentence can unlock thousands of words.",
-    prompt: "The thing I can't stop thinking about is...",
+    prompt: "[Tip: The thing I can't stop thinking about is...]",
   },
   {
     title: "Lower the stakes",
     body: "Natalie Goldberg (Writing Down the Bones): \"Give yourself permission to write the worst junk in America.\" No one sees this but you.",
-    prompt: "This is going to be terrible and that's completely fine. Here goes...",
+    prompt: "[Tip: This is going to be terrible and that's completely fine. Here goes...]",
   },
   {
     title: "Follow the energy",
     body: "If a tangent excites you, follow it. The best material hides in detours. You can always reorganize later in Refine mode.",
-    prompt: "The thing that excites me most right now is...",
+    prompt: "[Tip: The thing that excites me most right now is...]",
   },
   {
     title: "Engage your senses",
     body: "Describe what you see, hear, smell, taste, touch. Sensory detail activates different brain regions and unlocks creative flow.",
-    prompt: "Right now I can see... I can hear... I can feel...",
+    prompt: "[Tip: Right now I can see... I can hear... I can feel...]",
   },
 ];
 

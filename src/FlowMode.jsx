@@ -138,7 +138,7 @@ export default function FlowMode({ onNavigate }) {
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#5A8F6A' }}>Draft</span>, <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#5A8F6A' }}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
@@ -180,7 +180,7 @@ export default function FlowMode({ onNavigate }) {
             </div>
           )}
 
-          {sessionActive && streak > 5 && (
+          {sessionActive && streak >= 10 && (
             <span style={{ fontSize: 14 }}>🔥 {Math.floor(streak / 10)}</span>
           )}
 
@@ -197,7 +197,7 @@ export default function FlowMode({ onNavigate }) {
               padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
               borderRadius: 8, background: 'transparent', color: '#8B7B6B',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-            }}>↓ Save</button>
+            }}>↓ Save to Computer</button>
           )}
 
           <button onClick={() => onNavigate('gap')} style={{
@@ -343,7 +343,7 @@ export default function FlowMode({ onNavigate }) {
             background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
             textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-          }}>End Session & Save</button>
+          }}>End Session & Save to Browser</button>
           <button onClick={startNewSession} style={{
             padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',

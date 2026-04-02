@@ -76,7 +76,13 @@ export default function RefineMode({ draft, onNavigate }) {
   // Drag and drop handlers
   const handleDragStart = (e, id) => {
     setDraggedId(id);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = 'copyMove';
+    // Set the draft text so it can be dropped on the edit column
+    const draftData = projectDrafts.find(d => d.id === id);
+    if (draftData) {
+      e.dataTransfer.setData('text/plain', draftData.text);
+      e.dataTransfer.setData('application/x-draft-id', id);
+    }
   };
 
   const handleDragOver = (e, id) => {
@@ -140,7 +146,7 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-            <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#E8EDF2' }}>,</span> <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+            <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#E8EDF2' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
           </div>
           <span style={{ fontSize: 14, color: '#7A9A80' }}><span style={{ color: '#D4943A' }}>Sharpen</span> & Edit</span>
         </div>
@@ -272,14 +278,32 @@ export default function RefineMode({ draft, onNavigate }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{
             background: '#1E3028', padding: '10px 14px', borderRadius: '10px 10px 0 0',
-            fontSize: 15, fontWeight: 700, letterSpacing: '0.5px',
-            color: '#E2B44A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            fontSize: 16, fontWeight: 700, letterSpacing: '0.5px',
+            color: '#E2B44A', textAlign: 'center',
             textShadow: '0 0 12px rgba(212,148,58,0.6), 0 0 24px rgba(212,148,58,0.3), 0 0 40px rgba(212,148,58,0.15)',
           }}>✏️ Sharpen & Edit</div>
           <textarea
             ref={editTextareaRef}
             value={editedText}
             onChange={e => setEditedText(e.target.value)}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+            onDrop={(e) => {
+              const draftId = e.dataTransfer.getData('application/x-draft-id');
+              if (!draftId) return; // not a draft card drop, let browser handle
+              e.preventDefault();
+              const droppedText = e.dataTransfer.getData('text/plain');
+              if (!droppedText) return;
+              const textarea = editTextareaRef.current;
+              if (!textarea) return;
+              // Insert at current cursor position or end
+              const pos = textarea.selectionStart ?? editedText.length;
+              const before = editedText.slice(0, pos);
+              const after = editedText.slice(pos);
+              const sep = (before && !before.endsWith('\n')) ? '\n\n' : '';
+              setEditedText(before + sep + droppedText + after);
+              setDraggedId(null);
+              setDragOverId(null);
+            }}
             style={{
               flex: 1, background: '#1A2B22', borderRadius: '0 0 10px 10px',
               padding: 16, border: 'none', fontSize: 15, lineHeight: 1.8,
