@@ -3,8 +3,6 @@ import { useAuth } from './AuthContext';
 import { addDraft, addProject, loadProjects, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
-import GuidedTour from './GuidedTour';
-
 const TIMER_OPTIONS = [5, 10, 15, 20, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 const FAUCET_TARGET = 500;
 
@@ -13,7 +11,7 @@ const silverShimmer = {
   textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
 };
 
-export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
+export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourState }) {
   const { user, login } = useAuth();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
@@ -31,6 +29,13 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const faucetFill = Math.min(1, wordCount / FAUCET_TARGET);
+
+  // Report state to tour
+  useEffect(() => {
+    if (onTourState) {
+      onTourState({ sessionActive, hasText: text.length > 10, showTimePicker });
+    }
+  }, [sessionActive, text.length > 10, showTimePicker, onTourState]);
 
   const showSave = useCallback(() => {
     clearInterval(timerRef.current);
@@ -167,7 +172,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
@@ -367,6 +372,19 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
             borderRadius: 8, cursor: 'pointer',
             textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
           }}>End Session & Save to Browser</button>
+          <button onClick={() => {
+            if (confirm('Delete this draft? The text will be lost.')) {
+              clearInterval(timerRef.current);
+              setText('');
+              setSessionActive(false);
+              setSecondsLeft(null);
+              lastLengthRef.current = 0;
+            }
+          }} style={{
+            padding: '10px 24px', fontSize: 13, fontWeight: 600,
+            background: 'transparent', color: '#C0392B', border: '1px solid #C0392B',
+            borderRadius: 8, cursor: 'pointer',
+          }}>Delete Draft</button>
           <button onClick={startNewSession} style={{
             padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
@@ -476,15 +494,6 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
       )}
 
       {showTips && <TipsPanel mode="flow" onClose={() => setShowTips(false)} onInsertTip={handleInsertTip} />}
-
-      {tourActive && (
-        <GuidedTour
-          sessionActive={sessionActive}
-          hasText={text.length > 10}
-          showTimePicker={showTimePicker}
-          onEnd={onTourEnd}
-        />
-      )}
     </div>
   );
 }

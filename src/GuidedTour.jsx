@@ -1,86 +1,139 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { clearTour } from './OnboardingPopup';
 
 const STEPS = [
   {
     title: 'Welcome to Your Tour!',
-    body: 'We\'ll walk you through your first writing session step by step. Let\'s start by picking how long you want to write.',
-    action: 'Click "Continue without signing in" or "Start Session" to begin.',
+    body: 'Let\'s walk through your first writing session. Start by clicking the button below to begin.',
+    action: 'Click "Continue without signing in" or "Start Session".',
     waitFor: 'timePicker',
+    page: 'flow',
+    highlightText: ['Continue without signing in', 'Start Session'],
   },
   {
     title: 'Pick a Duration',
-    body: 'Choose how long your writing session will be. For this tour, try picking 5 minutes — you can always end early.',
-    action: 'Click any time duration to start.',
+    body: 'Choose how long your writing session will be. Try 5 minutes for this tour — you can always end early.',
+    action: 'Click any time duration.',
     waitFor: 'sessionStart',
+    page: 'flow',
+    highlightText: ['5 min'],
   },
   {
     title: 'Start Writing!',
-    body: 'This is your writing space. In "Strict" mode, you can\'t delete — just write forward. Try typing a few sentences now.',
-    action: 'Type anything — just keep moving forward.',
+    body: 'This is your writing space. In "Strict" mode, you can\'t delete — just write forward. Type a few sentences now.',
+    action: 'Type anything — keep moving forward.',
     waitFor: 'hasText',
+    page: 'flow',
   },
   {
-    title: 'Strict vs Gentle Mode',
-    body: 'See the toggle at the top? "Strict" blocks your backspace key to keep you moving forward. Switch to "Gentle" if you want backspace. Try toggling it!',
-    action: 'Try switching between Strict and Gentle.',
+    title: '"Strict" vs "Gentle" Mode',
+    body: 'See the toggle at the top right? "Strict" blocks backspace to keep you moving forward. "Gentle" allows it.',
+    action: 'Try switching between Strict and Gentle, then click Next.',
     waitFor: 'next',
+    page: 'flow',
+    highlightText: ['Strict', 'Gentle'],
   },
   {
-    title: 'Draft Tips',
-    body: 'Stuck? Click "💡 Draft Tips" for creative writing prompts you can insert directly into your text.',
+    title: '💡 Draft Tips',
+    body: 'Stuck? The Draft Tips button gives you creative prompts you can insert directly into your text.',
     action: 'Click Next to continue.',
     waitFor: 'next',
-  },
-  {
-    title: 'Save to Computer',
-    body: 'The "↓ Save to Computer" button downloads your draft as a text file — a backup outside the browser.',
-    action: 'Click Next to continue.',
-    waitFor: 'next',
+    page: 'flow',
+    highlightText: ['Draft Tips'],
   },
   {
     title: 'End Your Session',
-    body: 'When you\'re done writing, click "End Session & Save to Browser" to save your draft. It will then enter a 12-hour rest period before you can sharpen it.',
-    action: 'Click "End Session & Save to Browser" when ready, or click Next to skip ahead.',
+    body: 'When you\'re done, click "End Session & Save to Browser" to save. Your draft enters a 12-hour rest period.',
+    action: 'Click "End Session & Save to Browser" when ready, or Next to skip ahead.',
     waitFor: 'next',
+    page: 'flow',
+    highlightText: ['End Session'],
   },
   {
-    title: 'My Drafts Page',
-    body: 'After saving, you land on "My Drafts" — your resting drafts live here. Once the 12-hour stop period ends, you\'ll see "Ready to Sharpen" on each draft.',
-    action: 'Click Next to continue.',
+    title: '🌙 My Drafts Page',
+    body: 'This is where your resting drafts live. After 12 hours, they\'re ready to sharpen. You can organize them into projects.',
+    action: 'Click Next to see the Sharpen page.',
     waitFor: 'next',
+    page: 'gap',
   },
   {
-    title: 'Sharpen & Edit',
-    body: 'When a draft is ready, click "Ready to Sharpen" to open the side-by-side editor. The left shows your original, the right is where you sharpen and refine.',
+    title: '✏️ Sharpen & Edit',
+    body: 'When a draft is ready, click "Ready to Sharpen" to open the side-by-side editor. Your original stays on the left, you edit on the right.',
     action: 'Click Next to continue.',
     waitFor: 'next',
+    page: 'gap',
+    highlightText: ['Ready to sharpen'],
   },
   {
     title: 'You\'re All Set!',
-    body: 'That\'s the Draft, Stop & Sharpen method: write freely, rest your draft, then return with fresh eyes to sharpen it. The best creative work happens in stages.',
+    body: 'That\'s the Draft, Stop & Sharpen method: write freely, rest your draft, then sharpen with fresh eyes. The best creative work happens in stages.',
     action: 'Click "Finish Tour" to start writing!',
     waitFor: 'finish',
+    page: 'flow',
   },
 ];
 
-export default function GuidedTour({ sessionActive, hasText, showTimePicker, onEnd }) {
+export default function GuidedTour({ sessionActive, hasText, showTimePicker, currentPage, onNavigatePage, onEnd }) {
   const [step, setStep] = useState(0);
-  const [visible, setVisible] = useState(true);
+  const highlightIntervalRef = useRef(null);
 
   const current = STEPS[step];
 
-  // Auto-advance for certain steps
+  // Navigate to the correct page for this step
   useEffect(() => {
-    if (current.waitFor === 'timePicker' && showTimePicker) {
-      setStep(s => s + 1);
+    if (current.page && current.page !== currentPage && onNavigatePage) {
+      onNavigatePage(current.page);
     }
+  }, [step, current.page, currentPage, onNavigatePage]);
+
+  // Highlight target elements
+  useEffect(() => {
+    const addPulse = () => {
+      // Remove old pulses
+      document.querySelectorAll('.tour-pulse').forEach(el => {
+        el.classList.remove('tour-pulse');
+        el.style.removeProperty('animation');
+        el.style.removeProperty('box-shadow');
+      });
+
+      if (!current.highlightText) return;
+
+      // Find and highlight matching elements
+      const allButtons = document.querySelectorAll('button, a');
+      allButtons.forEach(btn => {
+        const text = btn.textContent || '';
+        if (current.highlightText.some(t => text.includes(t))) {
+          btn.classList.add('tour-pulse');
+          btn.style.animation = 'tourPulse 1.5s ease-in-out infinite';
+          btn.style.boxShadow = '0 0 0 3px #D4943A, 0 0 20px rgba(212,148,58,0.6), 0 0 40px rgba(212,148,58,0.3)';
+          btn.style.position = 'relative';
+          btn.style.zIndex = '50';
+        }
+      });
+    };
+
+    // Initial highlight + periodic refresh (elements may mount later)
+    addPulse();
+    highlightIntervalRef.current = setInterval(addPulse, 500);
+
+    return () => {
+      clearInterval(highlightIntervalRef.current);
+      document.querySelectorAll('.tour-pulse').forEach(el => {
+        el.classList.remove('tour-pulse');
+        el.style.removeProperty('animation');
+        el.style.removeProperty('box-shadow');
+        el.style.removeProperty('z-index');
+      });
+    };
+  }, [step, current.highlightText]);
+
+  // Auto-advance
+  useEffect(() => {
+    if (current.waitFor === 'timePicker' && showTimePicker) setStep(s => s + 1);
   }, [showTimePicker, current.waitFor]);
 
   useEffect(() => {
-    if (current.waitFor === 'sessionStart' && sessionActive) {
-      setStep(s => s + 1);
-    }
+    if (current.waitFor === 'sessionStart' && sessionActive) setStep(s => s + 1);
   }, [sessionActive, current.waitFor]);
 
   useEffect(() => {
@@ -95,17 +148,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, onE
       onEnd();
       return;
     }
-    if (step < STEPS.length - 1) {
-      setStep(step + 1);
-    }
+    if (step < STEPS.length - 1) setStep(step + 1);
   };
 
   const handleSkip = () => {
     clearTour();
     onEnd();
   };
-
-  if (!visible) return null;
 
   return (
     <div style={{
@@ -114,34 +163,30 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, onE
       background: '#FDF6EC', borderRadius: 16, padding: '20px 24px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 2px #D4943A',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      animation: 'slideUp 0.3s ease-out',
+      animation: 'tourSlideUp 0.3s ease-out',
     }}>
       <style>{`
-        @keyframes slideUp {
+        @keyframes tourSlideUp {
           from { transform: translateX(-50%) translateY(20px); opacity: 0; }
           to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
+        @keyframes tourPulse {
+          0%, 100% { box-shadow: 0 0 0 3px #D4943A, 0 0 20px rgba(212,148,58,0.6), 0 0 40px rgba(212,148,58,0.3); }
+          50% { box-shadow: 0 0 0 6px #D4943A, 0 0 30px rgba(212,148,58,0.8), 0 0 60px rgba(212,148,58,0.5); }
+        }
       `}</style>
 
-      {/* Step indicator */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginBottom: 10,
-      }}>
-        <span style={{
-          fontSize: 11, fontWeight: 700, color: '#D4943A',
-          letterSpacing: '1px', textTransform: 'uppercase',
-        }}>Step {step + 1} of {STEPS.length}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#D4943A', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          Step {step + 1} of {STEPS.length}
+        </span>
         <button onClick={handleSkip} style={{
           background: 'none', border: 'none', color: '#8B7B6B',
           fontSize: 11, cursor: 'pointer', textDecoration: 'underline',
         }}>Skip Tour</button>
       </div>
 
-      {/* Progress bar */}
-      <div style={{
-        height: 3, background: '#EDE5D4', borderRadius: 2, marginBottom: 14,
-      }}>
+      <div style={{ height: 3, background: '#EDE5D4', borderRadius: 2, marginBottom: 14 }}>
         <div style={{
           height: '100%', background: '#D4943A', borderRadius: 2,
           width: `${((step + 1) / STEPS.length) * 100}%`,
@@ -149,18 +194,11 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, onE
         }} />
       </div>
 
-      <h3 style={{
-        fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6,
-        fontFamily: "'Source Serif 4', serif",
-      }}>{current.title}</h3>
-
-      <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>
-        {current.body}
-      </p>
-
-      <p style={{ fontSize: 12, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>
-        👉 {current.action}
-      </p>
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6, fontFamily: "'Source Serif 4', serif" }}>
+        {current.title}
+      </h3>
+      <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>{current.body}</p>
+      <p style={{ fontSize: 12, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>👉 {current.action}</p>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         {step > 0 && (

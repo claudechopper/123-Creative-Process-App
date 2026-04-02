@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadProjects, reorderProjects } from './storage';
+import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadProjects, reorderProjects, renameProject } from './storage';
 
 export default function GapMode({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
   const [groups, setGroups] = useState(groupDraftsByProject);
   const [now, setNow] = useState(Date.now());
-  const [overrideTaps, setOverrideTaps] = useState({});
   const [expandedProjects, setExpandedProjects] = useState({});
   const [draggedProjectId, setDraggedProjectId] = useState(null);
   const [dragOverProjectId, setDragOverProjectId] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingName, setEditingName] = useState('');
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -25,17 +26,6 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   const toggleProject = (id) => {
     setExpandedProjects(prev => ({ ...prev, [id]: prev[id] === false ? true : false }));
-  };
-
-  const handleOverrideTap = (id) => {
-    const taps = (overrideTaps[id] || 0) + 1;
-    if (taps >= 2) {
-      updateDraft(id, { unlocksAt: Date.now() });
-      refresh();
-      setOverrideTaps(prev => ({ ...prev, [id]: 0 }));
-    } else {
-      setOverrideTaps(prev => ({ ...prev, [id]: taps }));
-    }
   };
 
   const handleDelete = (id) => {
@@ -59,8 +49,10 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   // Project drag and drop
   const handleProjectDragStart = (e, id) => {
-    setDraggedProjectId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.setData('application/x-project-id', id);
     e.dataTransfer.effectAllowed = 'move';
+    setDraggedProjectId(id);
   };
 
   const handleProjectDragOver = (e, id) => {
@@ -71,12 +63,13 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   const handleProjectDrop = (e, targetId) => {
     e.preventDefault();
-    if (!draggedProjectId || draggedProjectId === targetId) {
+    const fromId = e.dataTransfer.getData('application/x-project-id') || draggedProjectId;
+    if (!fromId || fromId === targetId) {
       setDraggedProjectId(null);
       setDragOverProjectId(null);
       return;
     }
-    doProjectReorder(draggedProjectId, targetId);
+    doProjectReorder(fromId, targetId);
     setDraggedProjectId(null);
     setDragOverProjectId(null);
   };
@@ -87,17 +80,13 @@ export default function GapMode({ onNavigate, onRefine }) {
   };
 
   const doProjectReorder = (fromId, toId) => {
-    const projects = loadProjects();
-    const ids = projects.map(p => p.id);
-    // Include uncategorized at the end
-    if (!ids.includes('uncategorized')) ids.push('uncategorized');
-    const fromIdx = ids.indexOf(fromId);
-    const toIdx = ids.indexOf(toId);
+    const projectIds = groups.map(g => g.project.id);
+    const fromIdx = projectIds.indexOf(fromId);
+    const toIdx = projectIds.indexOf(toId);
     if (fromIdx === -1 || toIdx === -1) return;
-    ids.splice(fromIdx, 1);
-    ids.splice(toIdx, 0, fromId);
-    // Only reorder real projects (not uncategorized)
-    const realIds = ids.filter(id => id !== 'uncategorized');
+    projectIds.splice(fromIdx, 1);
+    projectIds.splice(toIdx, 0, fromId);
+    const realIds = projectIds.filter(id => id !== 'uncategorized');
     reorderProjects(realIds);
     refresh();
   };
@@ -109,6 +98,21 @@ export default function GapMode({ onNavigate, onRefine }) {
     const newIdx = idx + direction;
     if (newIdx < 0 || newIdx >= projectIds.length) return;
     doProjectReorder(id, projectIds[newIdx]);
+  };
+
+  const startEditing = (project) => {
+    if (project.id === 'uncategorized') return;
+    setEditingProjectId(project.id);
+    setEditingName(project.name);
+  };
+
+  const saveProjectName = () => {
+    if (editingProjectId && editingName.trim()) {
+      renameProject(editingProjectId, editingName.trim());
+      refresh();
+    }
+    setEditingProjectId(null);
+    setEditingName('');
   };
 
   const allDrafts = loadDrafts();
@@ -128,7 +132,7 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -191,53 +195,101 @@ export default function GapMode({ onNavigate, onRefine }) {
           const isExpanded = expandedProjects[group.project.id] !== false;
           const isDraggedProject = group.project.id === draggedProjectId;
           const isDragOverProject = group.project.id === dragOverProjectId;
+          const isEditing = editingProjectId === group.project.id;
           return (
-            <div key={group.project.id} style={{
-              marginBottom: 16,
-              opacity: isDraggedProject ? 0.4 : 1,
-              borderTop: isDragOverProject ? '2px solid #A8B4C4' : '2px solid transparent',
-            }}>
-              {/* Project header */}
-              {groups.length > 1 && (
-                <div
-                  draggable
-                  onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
-                  onDragOver={(e) => handleProjectDragOver(e, group.project.id)}
-                  onDrop={(e) => handleProjectDrop(e, group.project.id)}
-                  onDragEnd={handleProjectDragEnd}
-                  style={{
-                  display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
-                  fontSize: 13, fontWeight: 600, color: '#4A5E48',
-                  userSelect: 'none', cursor: 'grab',
-                }}>
-                  {/* Arrow buttons for project reorder */}
+            <div
+              key={group.project.id}
+              onDragOver={(e) => handleProjectDragOver(e, group.project.id)}
+              onDrop={(e) => handleProjectDrop(e, group.project.id)}
+              style={{
+                marginBottom: 16,
+                opacity: isDraggedProject ? 0.4 : 1,
+                borderTop: isDragOverProject ? '3px solid #D4943A' : '3px solid transparent',
+                transition: 'opacity 0.2s ease',
+              }}
+            >
+              {/* Project header — always shown */}
+              <div
+                draggable={group.project.id !== 'uncategorized' && groups.length > 1}
+                onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
+                onDragEnd={handleProjectDragEnd}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
+                  userSelect: 'none',
+                  cursor: groups.length > 1 && group.project.id !== 'uncategorized' ? 'grab' : 'default',
+                }}
+              >
+                {/* Arrow buttons */}
+                {groups.length > 1 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                     <button
                       onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); moveProject(group.project.id, -1); }}
-                      disabled={gIdx === 0} style={{
-                      background: 'transparent', border: 'none', color: gIdx === 0 ? '#C8D8C5' : '#6B8B68',
-                      cursor: gIdx === 0 ? 'default' : 'pointer', fontSize: 10, padding: '2px 6px', lineHeight: 1,
-                    }}>▲</button>
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); moveProject(group.project.id, -1); }}
+                      disabled={gIdx === 0}
+                      style={{
+                        background: 'transparent', border: 'none',
+                        color: gIdx === 0 ? '#C8D8C5' : '#4A5E48',
+                        cursor: gIdx === 0 ? 'default' : 'pointer',
+                        fontSize: 14, padding: '2px 6px', lineHeight: 1,
+                      }}
+                    >▲</button>
                     <button
                       onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); moveProject(group.project.id, 1); }}
-                      disabled={gIdx === groups.length - 1} style={{
-                      background: 'transparent', border: 'none', color: gIdx === groups.length - 1 ? '#C8D8C5' : '#6B8B68',
-                      cursor: gIdx === groups.length - 1 ? 'default' : 'pointer', fontSize: 10, padding: '2px 6px', lineHeight: 1,
-                    }}>▼</button>
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); moveProject(group.project.id, 1); }}
+                      disabled={gIdx === groups.length - 1}
+                      style={{
+                        background: 'transparent', border: 'none',
+                        color: gIdx === groups.length - 1 ? '#C8D8C5' : '#4A5E48',
+                        cursor: gIdx === groups.length - 1 ? 'default' : 'pointer',
+                        fontSize: 14, padding: '2px 6px', lineHeight: 1,
+                      }}
+                    >▼</button>
                   </div>
-                  <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 10 }}>{isExpanded ? '▾' : '▸'}</span>
-                  <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer' }}>{group.project.name}</span>
-                  <span style={{ fontSize: 11, color: '#7B9478', fontWeight: 400 }}>({group.drafts.length})</span>
-                </div>
-              )}
+                )}
+
+                <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 12, color: '#6B8B68' }}>
+                  {isExpanded ? '▾' : '▸'}
+                </span>
+
+                {/* Editable project name — 200% bigger */}
+                {isEditing ? (
+                  <input
+                    autoFocus
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onBlur={saveProjectName}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveProjectName(); if (e.key === 'Escape') setEditingProjectId(null); }}
+                    style={{
+                      fontSize: 26, fontWeight: 700, color: '#3A4E38',
+                      background: 'transparent', border: 'none', borderBottom: '2px solid #D4943A',
+                      padding: '2px 4px', fontFamily: "'Source Serif 4', serif",
+                      outline: 'none', width: '100%', maxWidth: 400,
+                    }}
+                  />
+                ) : (
+                  <span
+                    onClick={() => startEditing(group.project)}
+                    style={{
+                      fontSize: 26, fontWeight: 700, color: '#3A4E38',
+                      cursor: group.project.id === 'uncategorized' ? 'default' : 'pointer',
+                      fontFamily: "'Source Serif 4', serif",
+                      borderBottom: group.project.id === 'uncategorized' ? 'none' : '2px solid transparent',
+                      transition: 'border-color 0.2s',
+                    }}
+                    onMouseEnter={(e) => { if (group.project.id !== 'uncategorized') e.target.style.borderBottom = '2px dashed #B0C8AD'; }}
+                    onMouseLeave={(e) => { e.target.style.borderBottom = '2px solid transparent'; }}
+                  >
+                    {group.project.name}
+                  </span>
+                )}
+
+                <span style={{ fontSize: 13, color: '#7B9478', fontWeight: 400 }}>({group.drafts.length})</span>
+              </div>
 
               {/* Draft cards */}
               {isExpanded && group.drafts.map(draft => {
                 const remaining = draft.unlocksAt - now;
                 const isReady = remaining <= 0;
-                const taps = overrideTaps[draft.id] || 0;
 
                 return (
                   <div key={draft.id} style={{
@@ -262,29 +314,15 @@ export default function GapMode({ onNavigate, onRefine }) {
                       {isReady ? (
                         <button onClick={() => onRefine(draft)} style={{
                           padding: '8px 16px', fontSize: 12, fontWeight: 600,
-                          background: '#D4943A', color: '#3A4E38', border: 'none',
+                          background: '#D4943A', color: '#1A5C2A', border: 'none',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
                           boxShadow: '0 2px 8px rgba(212,148,58,0.3)',
                         }}>Ready to sharpen →</button>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 12, color: '#6B8B68', fontFamily: "'Space Mono', monospace" }}>
-                              {formatRemaining(remaining)}
-                            </span>
-                            <button onClick={() => handleOverrideTap(draft.id)} style={{
-                              padding: '4px 8px', fontSize: 10, border: '1px solid #B0C8AD',
-                              borderRadius: 6, background: 'transparent', color: '#6B8B68',
-                              cursor: 'pointer',
-                            }}>
-                              {taps === 0 ? 'I need it now' : 'Are you sure?'}
-                            </button>
-                          </div>
-                          {taps === 0 && (
-                            <div style={{ fontSize: 9, color: '#7B9478', maxWidth: 180, lineHeight: 1.3, textAlign: 'right' }}>
-                              Taking a break from your draft improves editing quality
-                            </div>
-                          )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 12, color: '#6B8B68', fontFamily: "'Space Mono', monospace" }}>
+                            ⏳ {formatRemaining(remaining)}
+                          </span>
                         </div>
                       )}
                       <button onClick={() => handleDelete(draft.id)} style={{

@@ -88,6 +88,15 @@ export function addProject(name) {
   return project;
 }
 
+export function renameProject(id, newName) {
+  const projects = loadProjects();
+  const idx = projects.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    projects[idx].name = newName;
+    saveProjects(projects);
+  }
+}
+
 export function deleteProject(id) {
   const projects = loadProjects().filter(p => p.id !== id);
   saveProjects(projects);

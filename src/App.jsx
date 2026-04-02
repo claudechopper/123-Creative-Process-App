@@ -6,11 +6,13 @@ import GapMode from './GapMode';
 import RefineMode from './RefineMode';
 import Banner from './Banner';
 import OnboardingPopup, { isTourActive, clearTour } from './OnboardingPopup';
+import GuidedTour from './GuidedTour';
 
 export default function App() {
   const [mode, setMode] = useState('flow');
   const [refineDraft, setRefineDraft] = useState(null);
   const [tourActive, setTourActive] = useState(false);
+  const [tourFlowState, setTourFlowState] = useState({ sessionActive: false, hasText: false, showTimePicker: false });
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -18,11 +20,8 @@ export default function App() {
     if (user) syncAllDrafts();
   }, [user]);
 
-  // Check if tour was started
   useEffect(() => {
-    if (isTourActive()) {
-      setTourActive(true);
-    }
+    if (isTourActive()) setTourActive(true);
   }, []);
 
   const handleNavigate = (newMode) => {
@@ -35,13 +34,16 @@ export default function App() {
     setMode('refine');
   };
 
-  const handleStartTour = () => {
-    setTourActive(true);
-  };
+  const handleStartTour = () => setTourActive(true);
 
   const handleEndTour = () => {
     clearTour();
     setTourActive(false);
+    setMode('flow');
+  };
+
+  const handleTourNavigate = (page) => {
+    setMode(page);
   };
 
   if (loading) {
@@ -59,12 +61,29 @@ export default function App() {
   return (
     <>
       <OnboardingPopup onStartTour={handleStartTour} />
-      {mode === 'flow' && <FlowMode onNavigate={handleNavigate} tourActive={tourActive} onTourEnd={handleEndTour} />}
+      {mode === 'flow' && (
+        <FlowMode
+          onNavigate={handleNavigate}
+          tourActive={tourActive}
+          onTourEnd={handleEndTour}
+          onTourState={tourActive ? setTourFlowState : undefined}
+        />
+      )}
       {mode === 'gap' && <GapMode onNavigate={handleNavigate} onRefine={handleRefine} />}
       {mode === 'refine' && refineDraft && (
         <RefineMode draft={refineDraft} onNavigate={handleNavigate} />
       )}
       <Banner mode={mode} />
+      {tourActive && (
+        <GuidedTour
+          sessionActive={tourFlowState.sessionActive}
+          hasText={tourFlowState.hasText}
+          showTimePicker={tourFlowState.showTimePicker}
+          currentPage={mode}
+          onNavigatePage={handleTourNavigate}
+          onEnd={handleEndTour}
+        />
+      )}
     </>
   );
 }
