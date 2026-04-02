@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "twomodes-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["node_modules/.bin/vite", "--port", "5174", "--host", "0.0.0.0"],
+      "port": 5174
     }
   ]
 }
