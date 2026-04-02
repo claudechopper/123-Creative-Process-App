@@ -138,7 +138,7 @@ export default function FlowMode({ onNavigate }) {
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
+          Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
@@ -149,13 +149,13 @@ export default function FlowMode({ onNavigate }) {
                 <button onClick={() => setStrictMode(true)} style={{
                   padding: '6px 14px', fontSize: 12, fontWeight: 600, border: 'none',
                   borderRadius: 17, cursor: 'pointer',
-                  background: strictMode ? '#8B95A3' : 'transparent',
+                  background: strictMode ? '#A8B4C4' : 'transparent',
                   color: strictMode ? '#FFF' : '#8B7B6B',
                 }}>Strict</button>
                 <button onClick={() => setStrictMode(false)} style={{
                   padding: '6px 14px', fontSize: 12, fontWeight: 600, border: 'none',
                   borderRadius: 17, cursor: 'pointer',
-                  background: !strictMode ? '#8B95A3' : 'transparent',
+                  background: !strictMode ? '#A8B4C4' : 'transparent',
                   color: !strictMode ? '#FFF' : '#8B7B6B',
                 }}>Gentle</button>
               </div>
@@ -173,8 +173,8 @@ export default function FlowMode({ onNavigate }) {
               {secondsLeft !== null && (
                 <div style={{
                   fontFamily: "'Space Mono', monospace", fontSize: 14,
-                  color: '#8B95A3', opacity: 0.7, marginTop: 6, letterSpacing: '1px',
-                  textShadow: '0 0 8px rgba(192,200,212,0.3)',
+                  color: '#A8B4C4', opacity: 0.7, marginTop: 6, letterSpacing: '1px',
+                  textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
                 }}>{formatTime(secondsLeft)}</div>
               )}
             </div>
@@ -209,13 +209,13 @@ export default function FlowMode({ onNavigate }) {
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #8B95A3',
+              border: '2px solid #A8B4C4',
             }}>
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
               ) : (
                 <div style={{
-                  width: '100%', height: '100%', background: '#8B95A3',
+                  width: '100%', height: '100%', background: '#A8B4C4',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#FFF', fontSize: 12, fontWeight: 700,
                 }}>{user.name?.[0] || '?'}</div>
@@ -224,9 +224,9 @@ export default function FlowMode({ onNavigate }) {
           ) : (
             <button onClick={login} style={{
               padding: '6px 12px', fontSize: 11, border: 'none',
-              borderRadius: 8, background: '#8B95A3', color: '#FFF',
+              borderRadius: 8, background: '#A8B4C4', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 8px rgba(192,200,212,0.3)',
+              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
             }}>Sign in</button>
           )}
         </div>
@@ -251,7 +251,7 @@ export default function FlowMode({ onNavigate }) {
               {/* Sign-up encouragement card */}
               {!user && (
                 <div style={{
-                  background: '#F5EDD8', border: '2px solid #8B95A3', borderRadius: 16,
+                  background: '#F5EDD8', border: '2px solid #A8B4C4', borderRadius: 16,
                   padding: '20px 28px', maxWidth: 480, margin: '0 auto 30px',
                   textAlign: 'center',
                 }}>
@@ -265,9 +265,9 @@ export default function FlowMode({ onNavigate }) {
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button onClick={login} style={{
                       padding: '10px 20px', fontSize: 13, fontWeight: 600,
-                      background: '#8B95A3', color: '#FFF', border: 'none',
+                      background: '#A8B4C4', color: '#FFF', border: 'none',
                       borderRadius: 8, cursor: 'pointer',
-                      textShadow: '0 0 8px rgba(192,200,212,0.3)',
+                      textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
                     }}>Sign in with Google</button>
                     <button onClick={() => setShowTimePicker(true)} style={{
                       padding: '10px 20px', fontSize: 13,
@@ -282,9 +282,9 @@ export default function FlowMode({ onNavigate }) {
               {user && (
                 <button onClick={() => setShowTimePicker(true)} style={{
                   padding: '14px 36px', fontSize: 16, fontWeight: 600,
-                  background: '#8B95A3', color: '#FFF', border: 'none',
+                  background: '#A8B4C4', color: '#FFF', border: 'none',
                   borderRadius: 12, cursor: 'pointer',
-                  textShadow: '0 0 8px rgba(192,200,212,0.3)',
+                  textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
                 }}>Start Session</button>
               )}
 
@@ -324,7 +324,7 @@ export default function FlowMode({ onNavigate }) {
             <div style={{
               position: 'absolute', bottom: 0, width: '100%',
               height: `${faucetFill * 100}%`,
-              background: 'linear-gradient(to top, #8B95A3, #5BA4E6)',
+              background: 'linear-gradient(to top, #A8B4C4, #5BA4E6)',
               borderRadius: 4, transition: 'height 0.3s ease',
             }} />
           </div>
@@ -340,9 +340,9 @@ export default function FlowMode({ onNavigate }) {
           <span style={{ fontSize: 13, color: '#8B7B6B' }}>{wordCount} words</span>
           <button onClick={showSave} style={{
             padding: '10px 24px', fontSize: 13, fontWeight: 600,
-            background: '#8B95A3', color: '#FFF', border: 'none',
+            background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
-            textShadow: '0 0 8px rgba(192,200,212,0.3)',
+            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
           }}>End Session & Save</button>
           <button onClick={startNewSession} style={{
             padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
@@ -377,7 +377,7 @@ export default function FlowMode({ onNavigate }) {
                   borderRadius: 10, cursor: 'pointer', color: '#5C4A32',
                   transition: 'border-color 0.15s ease',
                 }}
-                onMouseEnter={e => e.target.style.borderColor = '#8B95A3'}
+                onMouseEnter={e => e.target.style.borderColor = '#A8B4C4'}
                 onMouseLeave={e => e.target.style.borderColor = 'transparent'}
                 >{formatTimerLabel(m)}</button>
               ))}
@@ -401,9 +401,9 @@ export default function FlowMode({ onNavigate }) {
 
             <button onClick={() => saveAndClose(null)} style={{
               width: '100%', padding: '12px', fontSize: 14, fontWeight: 600,
-              background: '#8B95A3', color: '#FFF', border: 'none',
+              background: '#A8B4C4', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer', marginBottom: 12,
-              textShadow: '0 0 8px rgba(192,200,212,0.3)',
+              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
             }}>Save as New Draft</button>
 
             {projects.length > 0 && (

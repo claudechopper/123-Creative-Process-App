@@ -28,20 +28,20 @@ export default function OnboardingPopup() {
         background: '#FDF6EC', borderRadius: 20, maxWidth: 600, width: '100%',
         maxHeight: '90vh', overflowY: 'auto', padding: '36px 32px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        border: '2px solid #8B95A3',
+        border: '2px solid #A8B4C4',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{
-            fontSize: 14, fontWeight: 600, color: '#8B95A3',
+            fontSize: 14, fontWeight: 600, color: '#A8B4C4',
             letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8,
-            textShadow: '0 0 8px rgba(192,200,212,0.3)',
+            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
           }}>Welcome to</div>
           <div style={{
             fontSize: 28, fontWeight: 700, color: '#5C4A32',
             letterSpacing: '-0.5px',
-          }}>draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span></div>
+          }}>Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span></div>
         </div>
 
         {/* Section A: The Creative Process */}
@@ -74,8 +74,8 @@ export default function OnboardingPopup() {
           }}>Draft, Stop & Sharpen follows this proven process:</div>
 
           {[
-            { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write forward without editing. Build momentum.', color: '#8B95A3' },
-            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#8B95A3' },
+            { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write forward without editing. Build momentum.', color: '#A8B4C4' },
+            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#A8B4C4' },
             { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Cut, shape, polish.', color: '#D4943A' },
           ].map(step => (
             <div key={step.num} style={{
@@ -98,7 +98,7 @@ export default function OnboardingPopup() {
 
         {/* AI Refine callout */}
         <div style={{
-          background: '#8B95A3', borderRadius: 14, padding: '18px 24px',
+          background: '#A8B4C4', borderRadius: 14, padding: '18px 24px',
           marginBottom: 24, textAlign: 'center',
         }}>
           <div style={{
@@ -137,7 +137,7 @@ export default function OnboardingPopup() {
               lineHeight: 1.5,
             }}>
               <span style={{
-                fontWeight: 700, color: '#8B95A3', whiteSpace: 'nowrap',
+                fontWeight: 700, color: '#A8B4C4', whiteSpace: 'nowrap',
               }}>{item.name}</span>
               <span style={{ color: '#6B5D4A' }}>— {item.desc}</span>
             </div>
@@ -148,10 +148,10 @@ export default function OnboardingPopup() {
         <div style={{ textAlign: 'center' }}>
           <button onClick={dismiss} style={{
             padding: '14px 40px', fontSize: 16, fontWeight: 700,
-            background: '#8B95A3', color: '#FFF', border: 'none',
+            background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 12, cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(139,149,163,0.3)',
-            textShadow: '0 0 8px rgba(192,200,212,0.3)',
+            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
           }}>Got it, let's write</button>
         </div>
       </div>

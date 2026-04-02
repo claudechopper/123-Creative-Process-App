@@ -128,7 +128,7 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', color: '#4A5E48' }}>
-          draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
+          Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -138,13 +138,13 @@ export default function GapMode({ onNavigate, onRefine }) {
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #8B95A3',
+              border: '2px solid #A8B4C4',
             }}>
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
               ) : (
                 <div style={{
-                  width: '100%', height: '100%', background: '#8B95A3',
+                  width: '100%', height: '100%', background: '#A8B4C4',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#FFF', fontSize: 12, fontWeight: 700,
                 }}>{user.name?.[0] || '?'}</div>
@@ -153,9 +153,9 @@ export default function GapMode({ onNavigate, onRefine }) {
           ) : (
             <button onClick={login} style={{
               padding: '6px 12px', fontSize: 11, border: 'none',
-              borderRadius: 8, background: '#8B95A3', color: '#FFF',
+              borderRadius: 8, background: '#A8B4C4', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 8px rgba(192,200,212,0.3)',
+              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
             }}>Sign in</button>
           )}
         </div>
@@ -180,9 +180,9 @@ export default function GapMode({ onNavigate, onRefine }) {
             <p style={{ fontSize: 14 }}>No drafts yet.</p>
             <button onClick={() => onNavigate('flow')} style={{
               marginTop: 16, padding: '12px 28px', fontSize: 14, fontWeight: 600,
-              background: '#8B95A3', color: '#FFF', border: 'none',
+              background: '#A8B4C4', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer',
-              textShadow: '0 0 8px rgba(192,200,212,0.3)',
+              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
             }}>Start Your First Flow Session</button>
           </div>
         )}
@@ -195,7 +195,7 @@ export default function GapMode({ onNavigate, onRefine }) {
             <div key={group.project.id} style={{
               marginBottom: 16,
               opacity: isDraggedProject ? 0.4 : 1,
-              borderTop: isDragOverProject ? '2px solid #8B95A3' : '2px solid transparent',
+              borderTop: isDragOverProject ? '2px solid #A8B4C4' : '2px solid transparent',
             }}
               draggable={groups.length > 1}
               onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
@@ -256,9 +256,9 @@ export default function GapMode({ onNavigate, onRefine }) {
                       {isReady ? (
                         <button onClick={() => onRefine(draft)} style={{
                           padding: '8px 16px', fontSize: 12, fontWeight: 600,
-                          background: '#8B95A3', color: '#FFF', border: 'none',
+                          background: '#A8B4C4', color: '#FFF', border: 'none',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                          textShadow: '0 0 8px rgba(192,200,212,0.3)',
+                          textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
                         }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>

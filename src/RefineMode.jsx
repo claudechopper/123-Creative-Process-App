@@ -140,7 +140,7 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-            draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
+            Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
           </div>
           <span style={{ fontSize: 14, color: '#7A9A80' }}>Edit & <span style={{ color: '#D4943A' }}>Sharpen</span></span>
         </div>
@@ -155,9 +155,9 @@ export default function RefineMode({ draft, onNavigate }) {
           }}>← Back to Drafts</button>
           <button onClick={handleDone} style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600,
-            border: 'none', borderRadius: 8, background: '#8B95A3',
+            border: 'none', borderRadius: 8, background: '#A8B4C4',
             color: '#FFF', cursor: 'pointer',
-            textShadow: '0 0 8px rgba(192,200,212,0.3)',
+            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
           }}>Done ✓</button>
         </div>
       </div>
@@ -213,10 +213,10 @@ export default function RefineMode({ draft, onNavigate }) {
                     style={{
                       padding: 14, margin: 8, borderRadius: 8,
                       background: isSelected ? '#1E3028' : 'transparent',
-                      border: isSelected ? '1px solid #8B95A3' : isDragOver ? '1px solid #8B95A3' : '1px solid transparent',
+                      border: isSelected ? '1px solid #A8B4C4' : isDragOver ? '1px solid #A8B4C4' : '1px solid transparent',
                       cursor: 'grab', transition: 'all 0.2s ease',
                       opacity: isDragging ? 0.4 : 1,
-                      borderTop: isDragOver && !isDragging ? '2px solid #8B95A3' : undefined,
+                      borderTop: isDragOver && !isDragging ? '2px solid #A8B4C4' : undefined,
                       display: 'flex', alignItems: 'flex-start', gap: 8,
                     }}
                   >
@@ -291,14 +291,14 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <button onClick={handleCopy} style={{
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
-          background: '#8B95A3', color: '#FFF', border: 'none',
+          background: '#A8B4C4', color: '#FFF', border: 'none',
           borderRadius: 8, cursor: 'pointer', minWidth: 160,
-          textShadow: '0 0 8px rgba(192,200,212,0.3)',
+          textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
         }}>{copied ? 'Copied!' : 'Copy Sharpened Text'}</button>
         <button onClick={handleSave} style={{
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
-          background: 'transparent', color: '#8B95A3',
-          border: '1px solid #8B95A3', borderRadius: 8, cursor: 'pointer',
+          background: 'transparent', color: '#A8B4C4',
+          border: '1px solid #A8B4C4', borderRadius: 8, cursor: 'pointer',
         }}>↓ Save to Computer</button>
       </div>
 

@@ -84,7 +84,7 @@ export default function TipsPanel({ mode, onClose, onInsertTip }) {
         borderRadius: 18, maxWidth: 480, width: '100%',
         maxHeight: '80vh', overflowY: 'auto', padding: '28px 26px',
         boxShadow: '0 16px 48px rgba(0,0,0,0.25)',
-        border: '2px solid #8B95A3',
+        border: '2px solid #A8B4C4',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}>
         {/* Header */}
@@ -122,8 +122,8 @@ export default function TipsPanel({ mode, onClose, onInsertTip }) {
           }}>
             <div style={{
               fontSize: 14, fontWeight: 700, marginBottom: 6,
-              color: '#8B95A3',
-              textShadow: '0 0 8px rgba(192,200,212,0.3)',
+              color: '#A8B4C4',
+              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
             }}>{tip.title}</div>
             <div style={{
               fontSize: 13, lineHeight: 1.6, marginBottom: 10,
@@ -132,9 +132,9 @@ export default function TipsPanel({ mode, onClose, onInsertTip }) {
             <button onClick={() => handleInsert(tip.prompt)} style={{
               padding: '6px 14px', fontSize: 11, fontWeight: 600,
               background: isRefine ? '#2A3D30' : '#EDE5D4',
-              border: '1px solid #8B95A3', borderRadius: 8,
-              color: '#8B95A3', cursor: 'pointer',
-              textShadow: '0 0 6px rgba(192,200,212,0.2)',
+              border: '1px solid #A8B4C4', borderRadius: 8,
+              color: '#A8B4C4', cursor: 'pointer',
+              textShadow: '0 0 10px rgba(168,180,196,0.5), 0 0 20px rgba(168,180,196,0.2)',
             }}>Try this →</button>
           </div>
         ))}
