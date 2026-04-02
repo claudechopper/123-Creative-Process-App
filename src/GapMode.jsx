@@ -127,8 +127,8 @@ export default function GapMode({ onNavigate, onRefine }) {
         width: '100%', maxWidth: 700, display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', padding: '20px 0',
       }}>
-        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', color: '#4A5E48' }}>
-          Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
+          <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -155,7 +155,7 @@ export default function GapMode({ onNavigate, onRefine }) {
               padding: '6px 12px', fontSize: 11, border: 'none',
               borderRadius: 8, background: '#A8B4C4', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
             }}>Sign in</button>
           )}
         </div>
@@ -182,7 +182,7 @@ export default function GapMode({ onNavigate, onRefine }) {
               marginTop: 16, padding: '12px 28px', fontSize: 14, fontWeight: 600,
               background: '#A8B4C4', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer',
-              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
             }}>Start Your First Flow Session</button>
           </div>
         )}
@@ -258,7 +258,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                           padding: '8px 16px', fontSize: 12, fontWeight: 600,
                           background: '#A8B4C4', color: '#FFF', border: 'none',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                          textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+                          textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
                         }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>

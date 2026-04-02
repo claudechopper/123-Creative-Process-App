@@ -138,7 +138,7 @@ export default function FlowMode({ onNavigate }) {
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#5A8F6A' }}>Draft</span>, <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
@@ -174,7 +174,7 @@ export default function FlowMode({ onNavigate }) {
                 <div style={{
                   fontFamily: "'Space Mono', monospace", fontSize: 14,
                   color: '#A8B4C4', opacity: 0.7, marginTop: 6, letterSpacing: '1px',
-                  textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+                  textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
                 }}>{formatTime(secondsLeft)}</div>
               )}
             </div>
@@ -189,7 +189,7 @@ export default function FlowMode({ onNavigate }) {
             <button onClick={() => setShowTips(true)} style={{
               padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
               borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-            }}>💡 Tips</button>
+            }}>💡 Draft Tips</button>
           )}
 
           {text.trim() && (
@@ -226,7 +226,7 @@ export default function FlowMode({ onNavigate }) {
               padding: '6px 12px', fontSize: 11, border: 'none',
               borderRadius: 8, background: '#A8B4C4', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
             }}>Sign in</button>
           )}
         </div>
@@ -267,7 +267,7 @@ export default function FlowMode({ onNavigate }) {
                       padding: '10px 20px', fontSize: 13, fontWeight: 600,
                       background: '#A8B4C4', color: '#FFF', border: 'none',
                       borderRadius: 8, cursor: 'pointer',
-                      textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+                      textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
                     }}>Sign in with Google</button>
                     <button onClick={() => setShowTimePicker(true)} style={{
                       padding: '10px 20px', fontSize: 13,
@@ -284,7 +284,7 @@ export default function FlowMode({ onNavigate }) {
                   padding: '14px 36px', fontSize: 16, fontWeight: 600,
                   background: '#A8B4C4', color: '#FFF', border: 'none',
                   borderRadius: 12, cursor: 'pointer',
-                  textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+                  textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
                 }}>Start Session</button>
               )}
 
@@ -342,7 +342,7 @@ export default function FlowMode({ onNavigate }) {
             padding: '10px 24px', fontSize: 13, fontWeight: 600,
             background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
-            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+            textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
           }}>End Session & Save</button>
           <button onClick={startNewSession} style={{
             padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
@@ -403,7 +403,7 @@ export default function FlowMode({ onNavigate }) {
               width: '100%', padding: '12px', fontSize: 14, fontWeight: 600,
               background: '#A8B4C4', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer', marginBottom: 12,
-              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
             }}>Save as New Draft</button>
 
             {projects.length > 0 && (

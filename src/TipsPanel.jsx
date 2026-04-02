@@ -123,7 +123,7 @@ export default function TipsPanel({ mode, onClose, onInsertTip }) {
             <div style={{
               fontSize: 14, fontWeight: 700, marginBottom: 6,
               color: '#A8B4C4',
-              textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
             }}>{tip.title}</div>
             <div style={{
               fontSize: 13, lineHeight: 1.6, marginBottom: 10,
@@ -134,7 +134,7 @@ export default function TipsPanel({ mode, onClose, onInsertTip }) {
               background: isRefine ? '#2A3D30' : '#EDE5D4',
               border: '1px solid #A8B4C4', borderRadius: 8,
               color: '#A8B4C4', cursor: 'pointer',
-              textShadow: '0 0 10px rgba(168,180,196,0.5), 0 0 20px rgba(168,180,196,0.2)',
+              textShadow: '0 0 12px rgba(255,255,255,0.6), 0 0 24px rgba(168,180,196,0.5), 0 0 40px rgba(168,180,196,0.25)',
             }}>Try this →</button>
           </div>
         ))}

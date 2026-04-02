@@ -140,15 +140,15 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-            Draft, Stop<span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+            <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#E8EDF2' }}>,</span> <span style={{ color: '#C96B6B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
           </div>
-          <span style={{ fontSize: 14, color: '#7A9A80' }}>Edit & <span style={{ color: '#D4943A' }}>Sharpen</span></span>
+          <span style={{ fontSize: 14, color: '#7A9A80' }}><span style={{ color: '#D4943A' }}>Sharpen</span> & Edit</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setShowTips(true)} style={{
             padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
             borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
-          }}>💡 Tips</button>
+          }}>💡 Edit Tips</button>
           <button onClick={() => onNavigate('gap')} style={{
             padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
             borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
@@ -157,7 +157,7 @@ export default function RefineMode({ draft, onNavigate }) {
             padding: '6px 16px', fontSize: 11, fontWeight: 600,
             border: 'none', borderRadius: 8, background: '#A8B4C4',
             color: '#FFF', cursor: 'pointer',
-            textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+            textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
           }}>Done ✓</button>
         </div>
       </div>
@@ -167,14 +167,14 @@ export default function RefineMode({ draft, onNavigate }) {
         display: 'flex', gap: 12, padding: '12px 24px', flexWrap: 'wrap',
       }}>
         {[
-          { label: 'Original Word Count', value: originalWords, color: '#B8C0B8', glow: false },
+          { label: 'Original Word Count', value: originalWords, color: '#A8B4C4', glow: false },
           { label: 'Current Word Count', value: currentWords, color: '#E2B44A', glow: true },
         ].map(stat => (
           <div key={stat.label} style={{
             background: '#1A2B22', border: '1px solid #2A3D30', borderRadius: 10,
             padding: '10px 16px', minWidth: 120, textAlign: 'center',
           }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: stat.color, textShadow: stat.glow ? '0 0 10px rgba(212,148,58,0.5), 0 0 24px rgba(212,148,58,0.2)' : 'none' }}>{stat.value}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: stat.color, textShadow: stat.glow ? '0 0 10px rgba(212,148,58,0.5), 0 0 24px rgba(212,148,58,0.2)' : '0 0 10px rgba(168,180,196,0.4), 0 0 20px rgba(168,180,196,0.15)' }}>{stat.value}</div>
             <div style={{ fontSize: 10, color: '#5E7A62', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>{stat.label}</div>
           </div>
         ))}
@@ -188,13 +188,18 @@ export default function RefineMode({ draft, onNavigate }) {
         {/* Original — greyish white text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{
-            background: '#1E3028', padding: '8px 14px', borderRadius: '10px 10px 0 0',
+            background: 'linear-gradient(135deg, #2A3644 0%, #344050 50%, #2A3644 100%)',
+            padding: '8px 14px', borderRadius: '10px 10px 0 0',
             fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase',
-            color: '#5E7A62', display: 'flex', alignItems: 'center', gap: 6,
+            color: '#A8B4C4', display: 'flex', alignItems: 'center', gap: 6,
+            textShadow: '0 0 10px rgba(168,180,196,0.5), 0 0 20px rgba(168,180,196,0.2)',
           }}>🔒 Original{projectDrafts.length > 1 && ` (${projectDrafts.length} drafts)`}</div>
           <div style={{
-            flex: 1, background: '#1A2B22', borderRadius: '0 0 10px 10px',
+            flex: 1, background: 'linear-gradient(180deg, #1E2C38 0%, #1A2630 100%)',
+            borderRadius: '0 0 10px 10px',
             overflowY: 'auto',
+            border: '1px solid rgba(168,180,196,0.15)',
+            boxShadow: 'inset 0 0 20px rgba(168,180,196,0.05), 0 0 15px rgba(168,180,196,0.08)',
           }}>
             {projectDrafts.length > 1 ? (
               projectDrafts.map((d, idx) => {
@@ -212,7 +217,7 @@ export default function RefineMode({ draft, onNavigate }) {
                     onClick={() => setSelectedOriginalId(d.id)}
                     style={{
                       padding: 14, margin: 8, borderRadius: 8,
-                      background: isSelected ? '#1E3028' : 'transparent',
+                      background: isSelected ? '#1E2C38' : 'transparent',
                       border: isSelected ? '1px solid #A8B4C4' : isDragOver ? '1px solid #A8B4C4' : '1px solid transparent',
                       cursor: 'grab', transition: 'all 0.2s ease',
                       opacity: isDragging ? 0.4 : 1,
@@ -237,9 +242,10 @@ export default function RefineMode({ draft, onNavigate }) {
                       </div>
                       {isSelected ? (
                         <div style={{
-                          fontSize: 15, lineHeight: 1.8, color: '#B8C0B8',
+                          fontSize: 15, lineHeight: 1.8, color: '#C0C8D4',
                           whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                           fontFamily: "'Source Serif 4', serif",
+                          textShadow: '0 0 8px rgba(168,180,196,0.15)',
                         }}>{d.text}</div>
                       ) : (
                         <div style={{
@@ -254,8 +260,9 @@ export default function RefineMode({ draft, onNavigate }) {
             ) : (
               <div style={{
                 padding: 16, fontSize: 15, lineHeight: 1.8,
-                fontFamily: "'Source Serif 4', serif", color: '#B8C0B8',
+                fontFamily: "'Source Serif 4', serif", color: '#C0C8D4',
                 whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                textShadow: '0 0 8px rgba(168,180,196,0.15)',
               }}>{selectedOriginal.text}</div>
             )}
           </div>
@@ -264,11 +271,11 @@ export default function RefineMode({ draft, onNavigate }) {
         {/* Editable — shimmering gold text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{
-            background: '#1E3028', padding: '8px 14px', borderRadius: '10px 10px 0 0',
-            fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase',
-            color: '#E2B44A', display: 'flex', alignItems: 'center', gap: 6,
-            textShadow: '0 0 10px rgba(212,148,58,0.5)',
-          }}>✏️ Your Sharpened Edit</div>
+            background: '#1E3028', padding: '10px 14px', borderRadius: '10px 10px 0 0',
+            fontSize: 15, fontWeight: 700, letterSpacing: '0.5px',
+            color: '#E2B44A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            textShadow: '0 0 12px rgba(212,148,58,0.6), 0 0 24px rgba(212,148,58,0.3), 0 0 40px rgba(212,148,58,0.15)',
+          }}>✏️ Sharpen & Edit</div>
           <textarea
             ref={editTextareaRef}
             value={editedText}
@@ -293,13 +300,14 @@ export default function RefineMode({ draft, onNavigate }) {
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
           background: '#A8B4C4', color: '#FFF', border: 'none',
           borderRadius: 8, cursor: 'pointer', minWidth: 160,
-          textShadow: '0 0 10px rgba(168,180,196,0.6), 0 0 20px rgba(168,180,196,0.25)',
+          textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
         }}>{copied ? 'Copied!' : 'Copy Sharpened Text'}</button>
         <button onClick={handleSave} style={{
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
-          background: 'transparent', color: '#A8B4C4',
-          border: '1px solid #A8B4C4', borderRadius: 8, cursor: 'pointer',
-        }}>↓ Save to Computer</button>
+          background: 'transparent', color: '#D4943A',
+          border: '1px solid #D4943A', borderRadius: 8, cursor: 'pointer',
+          textShadow: '0 0 10px rgba(212,148,58,0.5), 0 0 20px rgba(212,148,58,0.25)',
+        }}>↓ Save Sharpened Text to Computer</button>
       </div>
 
       {/* Tips panel */}
