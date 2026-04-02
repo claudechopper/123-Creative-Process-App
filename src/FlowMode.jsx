@@ -3,18 +3,23 @@ import { useAuth } from './AuthContext';
 import { addDraft, addProject, loadProjects, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
+import GuidedTour from './GuidedTour';
 
 const TIMER_OPTIONS = [5, 10, 15, 20, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 const FAUCET_TARGET = 500;
 
-export default function FlowMode({ onNavigate }) {
+const silverShimmer = {
+  color: '#A8B4C4',
+  textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
+};
+
+export default function FlowMode({ onNavigate, tourActive, onTourEnd }) {
   const { user, login } = useAuth();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
   const [timerMinutes, setTimerMinutes] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [sessionActive, setSessionActive] = useState(false);
-  const [streak, setStreak] = useState(0);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showTips, setShowTips] = useState(false);
@@ -22,6 +27,7 @@ export default function FlowMode({ onNavigate }) {
   const lastLengthRef = useRef(0);
   const textareaRef = useRef(null);
   const timerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const faucetFill = Math.min(1, wordCount / FAUCET_TARGET);
@@ -49,13 +55,11 @@ export default function FlowMode({ onNavigate }) {
     setText('');
     setSecondsLeft(minutes * 60);
     setSessionActive(true);
-    setStreak(0);
     lastLengthRef.current = 0;
     setTimeout(() => textareaRef.current?.focus(), 50);
   };
 
   const startNewSession = () => {
-    // Silent auto-save if there's text
     if (text.trim()) {
       addDraft({ text: text.trim(), wordCount, projectId: null });
     }
@@ -87,7 +91,6 @@ export default function FlowMode({ onNavigate }) {
     }
     lastLengthRef.current = newVal.length;
     setText(newVal);
-    if (newVal.length > text.length) setStreak(s => s + 1);
   };
 
   const formatTime = (s) => {
@@ -122,6 +125,23 @@ export default function FlowMode({ onNavigate }) {
     }, 50);
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target.result;
+      if (content) {
+        const newText = text ? text + '\n\n' + content : content;
+        setText(newText);
+        lastLengthRef.current = newText.length;
+        setTimeout(() => textareaRef.current?.focus(), 50);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const projects = loadProjects();
 
   return (
@@ -132,17 +152,25 @@ export default function FlowMode({ onNavigate }) {
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       padding: '0 20px 60px',
     }}>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".txt,.md,.csv,.json,.html,.xml,.rtf,.log,.tex,.yml,.yaml"
+        style={{ display: 'none' }}
+        onChange={handleFileUpload}
+      />
+
       {/* Top bar */}
       <div style={{
         width: '100%', maxWidth: 900, display: 'flex', justifyContent: 'space-between',
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#5A8F6A' }}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-          {/* Strict/Gentle toggle — only shown during session */}
           {sessionActive && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ display: 'flex', background: '#EDE5D4', borderRadius: 20, padding: 3 }}>
@@ -169,7 +197,6 @@ export default function FlowMode({ onNavigate }) {
                   <div style={{ fontSize: 10, color: '#8B7B6B' }}>(backspace ok)</div>
                 </div>
               </div>
-              {/* Small timer display underneath */}
               {secondsLeft !== null && (
                 <div style={{
                   fontFamily: "'Space Mono', monospace", fontSize: 14,
@@ -180,16 +207,18 @@ export default function FlowMode({ onNavigate }) {
             </div>
           )}
 
-          {sessionActive && streak >= 10 && (
-            <span style={{ fontSize: 14 }}>🔥 {Math.floor(streak / 10)}</span>
-          )}
-
-          {/* Tips button */}
           {sessionActive && (
             <button onClick={() => setShowTips(true)} style={{
               padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
               borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
             }}>💡 Draft Tips</button>
+          )}
+
+          {sessionActive && (
+            <button onClick={() => fileInputRef.current?.click()} style={{
+              padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
+              borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
+            }}>📄 Upload File</button>
           )}
 
           {text.trim() && (
@@ -205,7 +234,6 @@ export default function FlowMode({ onNavigate }) {
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
           }}>My Drafts</button>
 
-          {/* Auth indicator */}
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
@@ -243,12 +271,11 @@ export default function FlowMode({ onNavigate }) {
               <h1 style={{
                 fontFamily: "'Source Serif 4', serif", fontSize: 36, fontWeight: 400,
                 color: '#5C4A32', marginBottom: 12, letterSpacing: '-0.5px',
-              }}>Write forward.</h1>
+              }}>Just Get it all out.</h1>
               <p style={{ color: '#8B7B6B', fontSize: 16, marginBottom: 30 }}>
-                Just momentum first, then refine into finished later.
+                Write forward — momentum first, sharpen later.
               </p>
 
-              {/* Sign-up encouragement card */}
               {!user && (
                 <div style={{
                   background: '#F5EDD8', border: '2px solid #A8B4C4', borderRadius: 16,
@@ -278,7 +305,6 @@ export default function FlowMode({ onNavigate }) {
                 </div>
               )}
 
-              {/* Start Session button for signed-in users */}
               {user && (
                 <button onClick={() => setShowTimePicker(true)} style={{
                   padding: '14px 36px', fontSize: 16, fontWeight: 600,
@@ -288,7 +314,6 @@ export default function FlowMode({ onNavigate }) {
                 }}>Start Session</button>
               )}
 
-              {/* Show intro again link */}
               <div style={{ marginTop: 20 }}>
                 <button onClick={() => { resetOnboarding(); window.location.reload(); }} style={{
                   background: 'none', border: 'none', color: '#B8A898',
@@ -314,7 +339,6 @@ export default function FlowMode({ onNavigate }) {
           )}
         </div>
 
-        {/* Faucet meter */}
         {sessionActive && (
           <div style={{
             width: 8, height: 250, background: '#EDE5D4', borderRadius: 4,
@@ -331,7 +355,6 @@ export default function FlowMode({ onNavigate }) {
         )}
       </div>
 
-      {/* Bottom controls during session */}
       {sessionActive && (
         <div style={{
           display: 'flex', gap: 12, marginTop: 16, alignItems: 'center',
@@ -351,7 +374,6 @@ export default function FlowMode({ onNavigate }) {
         </div>
       )}
 
-      {/* Time picker modal */}
       {showTimePicker && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
@@ -386,7 +408,6 @@ export default function FlowMode({ onNavigate }) {
         </div>
       )}
 
-      {/* Save-to-project modal */}
       {showSaveModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
@@ -454,8 +475,16 @@ export default function FlowMode({ onNavigate }) {
         </div>
       )}
 
-      {/* Tips panel */}
       {showTips && <TipsPanel mode="flow" onClose={() => setShowTips(false)} onInsertTip={handleInsertTip} />}
+
+      {tourActive && (
+        <GuidedTour
+          sessionActive={sessionActive}
+          hasText={text.length > 10}
+          showTimePicker={showTimePicker}
+          onEnd={onTourEnd}
+        />
+      )}
     </div>
   );
 }

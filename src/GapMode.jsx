@@ -128,7 +128,7 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#5A8F6A' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -212,13 +212,19 @@ export default function GapMode({ onNavigate, onRefine }) {
                 }}>
                   {/* Arrow buttons for project reorder */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                    <button onClick={() => moveProject(group.project.id, -1)} disabled={gIdx === 0} style={{
+                    <button
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); moveProject(group.project.id, -1); }}
+                      disabled={gIdx === 0} style={{
                       background: 'transparent', border: 'none', color: gIdx === 0 ? '#C8D8C5' : '#6B8B68',
-                      cursor: gIdx === 0 ? 'default' : 'pointer', fontSize: 10, padding: '0 4px', lineHeight: 1,
+                      cursor: gIdx === 0 ? 'default' : 'pointer', fontSize: 10, padding: '2px 6px', lineHeight: 1,
                     }}>▲</button>
-                    <button onClick={() => moveProject(group.project.id, 1)} disabled={gIdx === groups.length - 1} style={{
+                    <button
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); moveProject(group.project.id, 1); }}
+                      disabled={gIdx === groups.length - 1} style={{
                       background: 'transparent', border: 'none', color: gIdx === groups.length - 1 ? '#C8D8C5' : '#6B8B68',
-                      cursor: gIdx === groups.length - 1 ? 'default' : 'pointer', fontSize: 10, padding: '0 4px', lineHeight: 1,
+                      cursor: gIdx === groups.length - 1 ? 'default' : 'pointer', fontSize: 10, padding: '2px 6px', lineHeight: 1,
                     }}>▼</button>
                   </div>
                   <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 10 }}>{isExpanded ? '▾' : '▸'}</span>
@@ -256,9 +262,9 @@ export default function GapMode({ onNavigate, onRefine }) {
                       {isReady ? (
                         <button onClick={() => onRefine(draft)} style={{
                           padding: '8px 16px', fontSize: 12, fontWeight: 600,
-                          background: '#A8B4C4', color: '#FFF', border: 'none',
+                          background: '#D4943A', color: '#3A4E38', border: 'none',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                          textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
+                          boxShadow: '0 2px 8px rgba(212,148,58,0.3)',
                         }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
