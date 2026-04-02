@@ -125,6 +125,16 @@ export function getDraftsByProject(projectId) {
   return loadDrafts().filter(d => d.projectId === projectId);
 }
 
+// --- Reorder ---
+
+export function reorderDrafts(projectId, orderedIds) {
+  const drafts = loadDrafts();
+  const projectDrafts = drafts.filter(d => d.projectId === projectId);
+  const otherDrafts = drafts.filter(d => d.projectId !== projectId);
+  const reordered = orderedIds.map(id => projectDrafts.find(d => d.id === id)).filter(Boolean);
+  saveDrafts([...reordered, ...otherDrafts]);
+}
+
 // --- Cloud Sync ---
 
 export async function syncAllDrafts() {

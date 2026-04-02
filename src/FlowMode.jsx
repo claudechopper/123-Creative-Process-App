@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { addDraft, addProject, loadProjects, downloadTextFile, formatDate } from './storage';
+import { resetOnboarding } from './OnboardingPopup';
+import TipsPanel from './TipsPanel';
 
 const TIMER_OPTIONS = [5, 10, 15, 20, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 const FAUCET_TARGET = 500;
@@ -9,11 +11,13 @@ export default function FlowMode({ onNavigate }) {
   const { user, login } = useAuth();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
-  const [timerMinutes, setTimerMinutes] = useState(10);
+  const [timerMinutes, setTimerMinutes] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [streak, setStreak] = useState(0);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTips, setShowTips] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const lastLengthRef = useRef(0);
   const textareaRef = useRef(null);
@@ -39,9 +43,11 @@ export default function FlowMode({ onNavigate }) {
     onNavigate('gap');
   };
 
-  const startSession = () => {
+  const startSessionWithTime = (minutes) => {
+    setTimerMinutes(minutes);
+    setShowTimePicker(false);
     setText('');
-    setSecondsLeft(timerMinutes * 60);
+    setSecondsLeft(minutes * 60);
     setSessionActive(true);
     setStreak(0);
     lastLengthRef.current = 0;
@@ -49,8 +55,11 @@ export default function FlowMode({ onNavigate }) {
   };
 
   const startNewSession = () => {
-    if (text.trim() && !confirm('You have unsaved text. Start a new session?')) return;
-    startSession();
+    // Silent auto-save if there's text
+    if (text.trim()) {
+      addDraft({ text: text.trim(), wordCount, projectId: null });
+    }
+    setShowTimePicker(true);
   };
 
   useEffect(() => {
@@ -116,11 +125,11 @@ export default function FlowMode({ onNavigate }) {
         alignItems: 'flex-start', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          two<span style={{ color: '#D4943A' }}>modes</span>
+          draft<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-          {/* Strict/Gentle toggle with labels + timer underneath */}
+          {/* Strict/Gentle toggle with arrows + labels */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ display: 'flex', background: '#EDE5D4', borderRadius: 20, padding: 3 }}>
               <button onClick={() => setStrictMode(true)} style={{
@@ -136,9 +145,15 @@ export default function FlowMode({ onNavigate }) {
                 color: !strictMode ? '#FFF' : '#8B7B6B',
               }}>Gentle</button>
             </div>
-            <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
-              <span style={{ fontSize: 9, color: '#8B7B6B', width: 65, textAlign: 'center' }}>no backspace</span>
-              <span style={{ fontSize: 9, color: '#8B7B6B', width: 65, textAlign: 'center' }}>backspace ok</span>
+            <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
+              <div style={{ textAlign: 'center', width: 70 }}>
+                <div style={{ fontSize: 10, color: '#8B7B6B', lineHeight: 1 }}>↑</div>
+                <div style={{ fontSize: 10, color: '#8B7B6B' }}>(no backspace)</div>
+              </div>
+              <div style={{ textAlign: 'center', width: 70 }}>
+                <div style={{ fontSize: 10, color: '#8B7B6B', lineHeight: 1 }}>↑</div>
+                <div style={{ fontSize: 10, color: '#8B7B6B' }}>(backspace ok)</div>
+              </div>
             </div>
             {/* Small timer display underneath */}
             {sessionActive && secondsLeft !== null && (
@@ -149,18 +164,16 @@ export default function FlowMode({ onNavigate }) {
             )}
           </div>
 
-          {/* Timer selector */}
-          {!sessionActive && (
-            <select value={timerMinutes} onChange={e => setTimerMinutes(Number(e.target.value))} style={{
-              padding: '6px 10px', fontSize: 12, border: '1px solid #D4C4A8',
-              borderRadius: 8, background: '#FDF6EC', color: '#5C4A32', cursor: 'pointer',
-            }}>
-              {TIMER_OPTIONS.map(m => <option key={m} value={m}>{formatTimerLabel(m)}</option>)}
-            </select>
-          )}
-
           {sessionActive && streak > 5 && (
             <span style={{ fontSize: 14 }}>🔥 {Math.floor(streak / 10)}</span>
+          )}
+
+          {/* Tips button */}
+          {sessionActive && (
+            <button onClick={() => setShowTips(true)} style={{
+              padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
+              borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
+            }}>💡 Tips</button>
           )}
 
           {text.trim() && (
@@ -215,7 +228,7 @@ export default function FlowMode({ onNavigate }) {
                 color: '#5C4A32', marginBottom: 12, letterSpacing: '-0.5px',
               }}>Write forward.</h1>
               <p style={{ color: '#8B7B6B', fontSize: 16, marginBottom: 30 }}>
-                No backspace. No delete. Just momentum.
+                Just momentum first, then refine into finished later.
               </p>
 
               {/* Sign-up encouragement card */}
@@ -238,7 +251,7 @@ export default function FlowMode({ onNavigate }) {
                       background: '#D4943A', color: '#FFF', border: 'none',
                       borderRadius: 8, cursor: 'pointer',
                     }}>Sign in with Google</button>
-                    <button onClick={startSession} style={{
+                    <button onClick={() => setShowTimePicker(true)} style={{
                       padding: '10px 20px', fontSize: 13,
                       background: 'transparent', border: '1px solid #D4C4A8',
                       borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',
@@ -247,11 +260,19 @@ export default function FlowMode({ onNavigate }) {
                 </div>
               )}
 
-              <button onClick={startSession} style={{
+              <button onClick={() => setShowTimePicker(true)} style={{
                 padding: '14px 36px', fontSize: 16, fontWeight: 600,
                 background: '#D4943A', color: '#FFF', border: 'none',
                 borderRadius: 12, cursor: 'pointer',
-              }}>Start {formatTimerLabel(timerMinutes)} Session</button>
+              }}>Start Session</button>
+
+              {/* Show intro again link */}
+              <div style={{ marginTop: 20 }}>
+                <button onClick={() => { resetOnboarding(); window.location.reload(); }} style={{
+                  background: 'none', border: 'none', color: '#B8A898',
+                  fontSize: 11, cursor: 'pointer', textDecoration: 'underline',
+                }}>Show intro again</button>
+              </div>
             </div>
           ) : (
             <textarea
@@ -304,6 +325,41 @@ export default function FlowMode({ onNavigate }) {
             padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
           }}>Start New</button>
+        </div>
+      )}
+
+      {/* Time picker modal */}
+      {showTimePicker && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+        }} onClick={(e) => { if (e.target === e.currentTarget) setShowTimePicker(false); }}>
+          <div style={{
+            background: '#FDF6EC', borderRadius: 16, padding: 28, maxWidth: 400, width: '90%',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#5C4A32', marginBottom: 6 }}>
+              How long do you want your session to be?
+            </h3>
+            <p style={{ fontSize: 12, color: '#8B7B6B', marginBottom: 20 }}>
+              Pick a duration and start writing.
+            </p>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+            }}>
+              {TIMER_OPTIONS.map(m => (
+                <button key={m} onClick={() => startSessionWithTime(m)} style={{
+                  padding: '12px 8px', fontSize: 13, fontWeight: 600,
+                  background: '#F5EDD8', border: '2px solid transparent',
+                  borderRadius: 10, cursor: 'pointer', color: '#5C4A32',
+                  transition: 'border-color 0.15s ease',
+                }}
+                onMouseEnter={e => e.target.style.borderColor = '#D4943A'}
+                onMouseLeave={e => e.target.style.borderColor = 'transparent'}
+                >{formatTimerLabel(m)}</button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -373,6 +429,9 @@ export default function FlowMode({ onNavigate }) {
           </div>
         </div>
       )}
+
+      {/* Tips panel */}
+      {showTips && <TipsPanel mode="flow" onClose={() => setShowTips(false)} />}
     </div>
   );
 }

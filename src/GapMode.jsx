@@ -60,7 +60,7 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#E8E4DF', color: '#6B6560',
+      minHeight: '100vh', background: '#E2EBE0', color: '#4A5E48',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       transition: 'background-color 0.6s ease, color 0.6s ease',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -71,24 +71,24 @@ export default function GapMode({ onNavigate, onRefine }) {
         width: '100%', maxWidth: 700, display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', padding: '20px 0',
       }}>
-        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', color: '#6B6560' }}>
-          two<span style={{ color: '#9B8B7B' }}>modes</span>
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', color: '#4A5E48' }}>
+          draft<span style={{ color: '#6B8B68' }}>&nbsp;& sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #C4BEB8',
-            borderRadius: 8, background: 'transparent', color: '#6B6560', cursor: 'pointer',
+            padding: '6px 12px', fontSize: 11, border: '1px solid #B0C8AD',
+            borderRadius: 8, background: 'transparent', color: '#4A5E48', cursor: 'pointer',
           }}>+ New Session</button>
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #9B8B7B',
+              border: '2px solid #6B8B68',
             }}>
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
               ) : (
                 <div style={{
-                  width: '100%', height: '100%', background: '#9B8B7B',
+                  width: '100%', height: '100%', background: '#6B8B68',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#FFF', fontSize: 12, fontWeight: 700,
                 }}>{user.name?.[0] || '?'}</div>
@@ -97,7 +97,7 @@ export default function GapMode({ onNavigate, onRefine }) {
           ) : (
             <button onClick={login} style={{
               padding: '6px 12px', fontSize: 11, border: 'none',
-              borderRadius: 8, background: '#9B8B7B', color: '#FFF',
+              borderRadius: 8, background: '#6B8B68', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
             }}>Sign in</button>
           )}
@@ -123,7 +123,7 @@ export default function GapMode({ onNavigate, onRefine }) {
             <p style={{ fontSize: 14 }}>No drafts yet.</p>
             <button onClick={() => onNavigate('flow')} style={{
               marginTop: 16, padding: '12px 28px', fontSize: 14, fontWeight: 600,
-              background: '#9B8B7B', color: '#FFF', border: 'none',
+              background: '#6B8B68', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer',
             }}>Start Your First Flow Session</button>
           </div>
@@ -139,13 +139,13 @@ export default function GapMode({ onNavigate, onRefine }) {
                   onClick={() => toggleProject(group.project.id)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
-                    cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#6B6560',
+                    cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#4A5E48',
                     userSelect: 'none',
                   }}
                 >
                   <span style={{ fontSize: 10 }}>{isExpanded ? '▾' : '▸'}</span>
                   <span>{group.project.name}</span>
-                  <span style={{ fontSize: 11, color: '#9B9590', fontWeight: 400 }}>({group.drafts.length})</span>
+                  <span style={{ fontSize: 11, color: '#7B9478', fontWeight: 400 }}>({group.drafts.length})</span>
                 </div>
               )}
 
@@ -157,7 +157,7 @@ export default function GapMode({ onNavigate, onRefine }) {
 
                 return (
                   <div key={draft.id} style={{
-                    background: isReady ? '#F0ECE8' : '#E2DEDB',
+                    background: isReady ? '#EDF5EB' : '#D8E5D5',
                     borderRadius: 12, padding: '16px 20px', marginBottom: 8,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     opacity: isReady ? 1 : 0.7,
@@ -165,13 +165,12 @@ export default function GapMode({ onNavigate, onRefine }) {
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize: 14, fontWeight: 600, color: isReady ? '#4A4440' : '#6B6560',
+                        fontSize: 14, fontWeight: 600, color: isReady ? '#3A4E38' : '#4A5E48',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>{getTitle(draft.text)}</div>
-                      <div style={{ fontSize: 11, color: '#9B9590', marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: '#7B9478', marginTop: 4 }}>
                         {draft.wordCount} words · {new Date(draft.createdAt).toLocaleDateString()}
                         {draft.refined && ' · Refined ✓'}
-                        {draft.projectId && group.project.id === 'uncategorized' ? '' : ''}
                       </div>
                     </div>
 
@@ -185,19 +184,19 @@ export default function GapMode({ onNavigate, onRefine }) {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 12, color: '#9B8B7B', fontFamily: "'Space Mono', monospace" }}>
+                            <span style={{ fontSize: 12, color: '#6B8B68', fontFamily: "'Space Mono', monospace" }}>
                               {formatRemaining(remaining)}
                             </span>
                             <button onClick={() => handleOverrideTap(draft.id)} style={{
-                              padding: '4px 8px', fontSize: 10, border: '1px solid #C4BEB8',
-                              borderRadius: 6, background: 'transparent', color: '#9B8B7B',
+                              padding: '4px 8px', fontSize: 10, border: '1px solid #B0C8AD',
+                              borderRadius: 6, background: 'transparent', color: '#6B8B68',
                               cursor: 'pointer',
                             }}>
                               {taps === 0 ? 'I need it now' : taps === 1 ? 'Are you sure?' : 'Last chance...'}
                             </button>
                           </div>
                           {taps === 0 && (
-                            <div style={{ fontSize: 9, color: '#9B8B7B', maxWidth: 180, lineHeight: 1.3, textAlign: 'right' }}>
+                            <div style={{ fontSize: 9, color: '#7B9478', maxWidth: 180, lineHeight: 1.3, textAlign: 'right' }}>
                               Taking a break from your draft improves editing quality
                             </div>
                           )}
@@ -205,7 +204,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                       )}
                       <button onClick={() => handleDelete(draft.id)} style={{
                         padding: '4px 8px', fontSize: 12, background: 'transparent',
-                        border: 'none', color: '#B0A8A0', cursor: 'pointer',
+                        border: 'none', color: '#9BB898', cursor: 'pointer',
                       }}>×</button>
                     </div>
                   </div>

@@ -8,8 +8,8 @@ export default function Banner({ mode }) {
 
   if (dismissed) return null;
 
-  const bg = mode === 'flow' ? '#EDE5D4' : mode === 'gap' ? '#DDD9D4' : '#1A2B1E';
-  const color = mode === 'refine' ? '#8B9B7B' : '#8B7B6B';
+  const bg = mode === 'flow' ? '#EDE5D4' : mode === 'gap' ? '#D8E5D5' : '#14201A';
+  const color = mode === 'refine' ? '#7A9A80' : mode === 'gap' ? '#4A5E48' : '#8B7B6B';
 
   const handleDownloadAll = () => {
     const drafts = loadDrafts();
@@ -17,7 +17,7 @@ export default function Banner({ mode }) {
     const content = drafts.map((d, i) =>
       `--- Draft ${i + 1} (${d.wordCount} words, ${new Date(d.createdAt).toLocaleString()}) ---\n\n${d.text}\n${d.refinedText ? `\n--- Refined ---\n\n${d.refinedText}\n` : ''}`
     ).join('\n\n');
-    downloadTextFile(content, `twomodes-all-drafts-${formatDate()}.txt`);
+    downloadTextFile(content, `draft-and-sharpen-all-drafts-${formatDate()}.txt`);
   };
 
   return (

@@ -5,6 +5,7 @@ import FlowMode from './FlowMode';
 import GapMode from './GapMode';
 import RefineMode from './RefineMode';
 import Banner from './Banner';
+import OnboardingPopup from './OnboardingPopup';
 
 export default function App() {
   const [mode, setMode] = useState('flow');
@@ -40,6 +41,7 @@ export default function App() {
 
   return (
     <>
+      <OnboardingPopup />
       {mode === 'flow' && <FlowMode onNavigate={handleNavigate} />}
       {mode === 'gap' && <GapMode onNavigate={handleNavigate} onRefine={handleRefine} />}
       {mode === 'refine' && refineDraft && (
