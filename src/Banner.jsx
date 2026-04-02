@@ -15,16 +15,16 @@ export default function Banner({ mode }) {
     const drafts = loadDrafts();
     if (drafts.length === 0) { alert('No drafts to save yet.'); return; }
     const content = drafts.map((d, i) =>
-      `--- Draft ${i + 1} (${d.wordCount} words, ${new Date(d.createdAt).toLocaleString()}) ---\n\n${d.text}\n${d.refinedText ? `\n--- Refined ---\n\n${d.refinedText}\n` : ''}`
+      `--- Draft ${i + 1} (${d.wordCount} words, ${new Date(d.createdAt).toLocaleString()}) ---\n\n${d.text}\n${d.refinedText ? `\n--- Sharpened ---\n\n${d.refinedText}\n` : ''}`
     ).join('\n\n');
-    downloadTextFile(content, `draft-and-sharpen-all-drafts-${formatDate()}.txt`);
+    downloadTextFile(content, `draft-stop-sharpen-all-drafts-${formatDate()}.txt`);
   };
 
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, height: 48,
       background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 12, color, zIndex: 100, borderTop: '2px solid #D4943A',
+      fontSize: 12, color, zIndex: 100, borderTop: '2px solid #8B95A3',
       transition: 'background-color 0.6s ease, color 0.6s ease',
       padding: '0 40px',
     }}>
@@ -32,7 +32,7 @@ export default function Banner({ mode }) {
         <span>
           Signed in as {user.name}. Drafts sync automatically.
           {' '}<button onClick={logout} style={{
-            background: 'none', border: 'none', color: '#D4943A',
+            background: 'none', border: 'none', color: '#8B95A3',
             cursor: 'pointer', textDecoration: 'underline', fontSize: 12,
           }}>Sign out</button>
         </span>
@@ -40,11 +40,11 @@ export default function Banner({ mode }) {
         <span>
           Your drafts live only in this browser.
           {' '}<button onClick={login} style={{
-            background: 'none', border: 'none', color: '#D4943A',
+            background: 'none', border: 'none', color: '#8B95A3',
             fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', fontSize: 12,
           }}>Sign in</button> to save to the cloud, or
           {' '}<button onClick={handleDownloadAll} style={{
-            background: 'none', border: 'none', color: '#D4943A',
+            background: 'none', border: 'none', color: '#8B95A3',
             fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', fontSize: 12,
           }}>download your drafts</button> now.
         </span>

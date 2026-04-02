@@ -31,7 +31,7 @@ export function addDraft({ text, wordCount, projectId = null }) {
     wordCount,
     projectId,
     createdAt: Date.now(),
-    unlocksAt: Date.now() + 24 * 60 * 60 * 1000,
+    unlocksAt: Date.now() + 12 * 60 * 60 * 1000,
     refined: false,
     refinedText: null,
   };
@@ -133,6 +133,12 @@ export function reorderDrafts(projectId, orderedIds) {
   const otherDrafts = drafts.filter(d => d.projectId !== projectId);
   const reordered = orderedIds.map(id => projectDrafts.find(d => d.id === id)).filter(Boolean);
   saveDrafts([...reordered, ...otherDrafts]);
+}
+
+export function reorderProjects(orderedIds) {
+  const projects = loadProjects();
+  const reordered = orderedIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
+  saveProjects(reordered);
 }
 
 // --- Cloud Sync ---

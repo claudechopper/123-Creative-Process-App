@@ -3,7 +3,6 @@ import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, forma
 import TipsPanel from './TipsPanel';
 
 export default function RefineMode({ draft, onNavigate }) {
-  // Get sibling drafts from same project
   const [localDraftOrder, setLocalDraftOrder] = useState(null);
   const projectDraftsRaw = draft.projectId
     ? getDraftsByProject(draft.projectId)
@@ -19,6 +18,7 @@ export default function RefineMode({ draft, onNavigate }) {
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const copiedTimeout = useRef(null);
+  const editTextareaRef = useRef(null);
 
   const selectedOriginal = projectDrafts.find(d => d.id === selectedOriginalId) || draft;
   const originalWords = selectedOriginal.text.trim().split(/\s+/).length;
@@ -41,7 +41,7 @@ export default function RefineMode({ draft, onNavigate }) {
   };
 
   const handleSave = () => {
-    downloadTextFile(editedText, `refined-${formatDate()}.txt`);
+    downloadTextFile(editedText, `sharpened-${formatDate()}.txt`);
   };
 
   const handleDone = () => {
@@ -59,6 +59,18 @@ export default function RefineMode({ draft, onNavigate }) {
       month: 'short', day: 'numeric', year: 'numeric',
       hour: 'numeric', minute: '2-digit',
     });
+  };
+
+  const handleInsertTip = (prompt) => {
+    const newText = editedText ? editedText + '\n\n' + prompt : prompt;
+    setEditedText(newText);
+    setTimeout(() => {
+      if (editTextareaRef.current) {
+        editTextareaRef.current.focus();
+        editTextareaRef.current.selectionStart = newText.length;
+        editTextareaRef.current.selectionEnd = newText.length;
+      }
+    }, 50);
   };
 
   // Drag and drop handlers
@@ -80,16 +92,7 @@ export default function RefineMode({ draft, onNavigate }) {
       setDragOverId(null);
       return;
     }
-    const currentOrder = projectDrafts.map(d => d.id);
-    const fromIdx = currentOrder.indexOf(draggedId);
-    const toIdx = currentOrder.indexOf(targetId);
-    if (fromIdx === -1 || toIdx === -1) return;
-    currentOrder.splice(fromIdx, 1);
-    currentOrder.splice(toIdx, 0, draggedId);
-    setLocalDraftOrder(currentOrder);
-    if (draft.projectId) {
-      reorderDrafts(draft.projectId, currentOrder);
-    }
+    doReorder(draggedId, targetId);
     setDraggedId(null);
     setDragOverId(null);
   };
@@ -97,6 +100,30 @@ export default function RefineMode({ draft, onNavigate }) {
   const handleDragEnd = () => {
     setDraggedId(null);
     setDragOverId(null);
+  };
+
+  // Arrow reorder
+  const moveCard = (id, direction) => {
+    const currentOrder = projectDrafts.map(d => d.id);
+    const idx = currentOrder.indexOf(id);
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= currentOrder.length) return;
+    currentOrder.splice(idx, 1);
+    currentOrder.splice(newIdx, 0, id);
+    setLocalDraftOrder(currentOrder);
+    if (draft.projectId) reorderDrafts(draft.projectId, currentOrder);
+  };
+
+  const doReorder = (fromId, toId) => {
+    const currentOrder = projectDrafts.map(d => d.id);
+    const fromIdx = currentOrder.indexOf(fromId);
+    const toIdx = currentOrder.indexOf(toId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    currentOrder.splice(fromIdx, 1);
+    currentOrder.splice(toIdx, 0, fromId);
+    setLocalDraftOrder(currentOrder);
+    if (draft.projectId) reorderDrafts(draft.projectId, currentOrder);
   };
 
   return (
@@ -113,9 +140,9 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-            draft<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
+            draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
           </div>
-          <span style={{ fontSize: 14, color: '#7A9A80' }}>Refine & Edit</span>
+          <span style={{ fontSize: 14, color: '#7A9A80' }}>Edit & <span style={{ color: '#D4943A' }}>Sharpen</span></span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setShowTips(true)} style={{
@@ -128,8 +155,9 @@ export default function RefineMode({ draft, onNavigate }) {
           }}>← Back to Drafts</button>
           <button onClick={handleDone} style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600,
-            border: 'none', borderRadius: 8, background: '#D4943A',
+            border: 'none', borderRadius: 8, background: '#8B95A3',
             color: '#FFF', cursor: 'pointer',
+            textShadow: '0 0 8px rgba(192,200,212,0.3)',
           }}>Done ✓</button>
         </div>
       </div>
@@ -139,7 +167,7 @@ export default function RefineMode({ draft, onNavigate }) {
         display: 'flex', gap: 12, padding: '12px 24px', flexWrap: 'wrap',
       }}>
         {[
-          { label: 'Original Word Count', value: originalWords, color: '#B8C0B8' },
+          { label: 'Original Word Count', value: originalWords, color: '#B8C0B8', glow: false },
           { label: 'Current Word Count', value: currentWords, color: '#E2B44A', glow: true },
         ].map(stat => (
           <div key={stat.label} style={{
@@ -169,8 +197,7 @@ export default function RefineMode({ draft, onNavigate }) {
             overflowY: 'auto',
           }}>
             {projectDrafts.length > 1 ? (
-              // Multi-card view with drag and drop
-              projectDrafts.map(d => {
+              projectDrafts.map((d, idx) => {
                 const isSelected = d.id === selectedOriginalId;
                 const isDragging = d.id === draggedId;
                 const isDragOver = d.id === dragOverId;
@@ -186,32 +213,45 @@ export default function RefineMode({ draft, onNavigate }) {
                     style={{
                       padding: 14, margin: 8, borderRadius: 8,
                       background: isSelected ? '#1E3028' : 'transparent',
-                      border: isSelected ? '1px solid #D4943A' : isDragOver ? '1px solid #D4943A' : '1px solid transparent',
+                      border: isSelected ? '1px solid #8B95A3' : isDragOver ? '1px solid #8B95A3' : '1px solid transparent',
                       cursor: 'grab', transition: 'all 0.2s ease',
                       opacity: isDragging ? 0.4 : 1,
-                      borderTop: isDragOver && !isDragging ? '2px solid #D4943A' : undefined,
+                      borderTop: isDragOver && !isDragging ? '2px solid #8B95A3' : undefined,
+                      display: 'flex', alignItems: 'flex-start', gap: 8,
                     }}
                   >
-                    <div style={{ fontSize: 11, color: '#5E7A62', marginBottom: 4 }}>
-                      {d.wordCount} words · {formatTimestamp(d.createdAt)}
+                    {/* Arrow buttons */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, marginTop: 2 }}>
+                      <button onClick={(e) => { e.stopPropagation(); moveCard(d.id, -1); }} disabled={idx === 0} style={{
+                        background: 'transparent', border: 'none', color: idx === 0 ? '#2A3D30' : '#5E7A62',
+                        cursor: idx === 0 ? 'default' : 'pointer', fontSize: 12, padding: '0 4px', lineHeight: 1,
+                      }}>▲</button>
+                      <button onClick={(e) => { e.stopPropagation(); moveCard(d.id, 1); }} disabled={idx === projectDrafts.length - 1} style={{
+                        background: 'transparent', border: 'none', color: idx === projectDrafts.length - 1 ? '#2A3D30' : '#5E7A62',
+                        cursor: idx === projectDrafts.length - 1 ? 'default' : 'pointer', fontSize: 12, padding: '0 4px', lineHeight: 1,
+                      }}>▼</button>
                     </div>
-                    {isSelected ? (
-                      <div style={{
-                        fontSize: 15, lineHeight: 1.8, color: '#B8C0B8',
-                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                        fontFamily: "'Source Serif 4', serif",
-                      }}>{d.text}</div>
-                    ) : (
-                      <div style={{
-                        fontSize: 13, color: '#7A9A80', whiteSpace: 'nowrap',
-                        overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>{getTitle(d.text)}</div>
-                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: '#5E7A62', marginBottom: 4 }}>
+                        {d.wordCount} words · {formatTimestamp(d.createdAt)}
+                      </div>
+                      {isSelected ? (
+                        <div style={{
+                          fontSize: 15, lineHeight: 1.8, color: '#B8C0B8',
+                          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                          fontFamily: "'Source Serif 4', serif",
+                        }}>{d.text}</div>
+                      ) : (
+                        <div style={{
+                          fontSize: 13, color: '#7A9A80', whiteSpace: 'nowrap',
+                          overflow: 'hidden', textOverflow: 'ellipsis',
+                        }}>{getTitle(d.text)}</div>
+                      )}
+                    </div>
                   </div>
                 );
               })
             ) : (
-              // Single draft view — greyish white
               <div style={{
                 padding: 16, fontSize: 15, lineHeight: 1.8,
                 fontFamily: "'Source Serif 4', serif", color: '#B8C0B8',
@@ -228,8 +268,9 @@ export default function RefineMode({ draft, onNavigate }) {
             fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase',
             color: '#E2B44A', display: 'flex', alignItems: 'center', gap: 6,
             textShadow: '0 0 10px rgba(212,148,58,0.5)',
-          }}>✏️ Your Edit</div>
+          }}>✏️ Your Sharpened Edit</div>
           <textarea
+            ref={editTextareaRef}
             value={editedText}
             onChange={e => setEditedText(e.target.value)}
             style={{
@@ -250,18 +291,19 @@ export default function RefineMode({ draft, onNavigate }) {
       }}>
         <button onClick={handleCopy} style={{
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
-          background: '#D4943A', color: '#FFF', border: 'none',
+          background: '#8B95A3', color: '#FFF', border: 'none',
           borderRadius: 8, cursor: 'pointer', minWidth: 160,
-        }}>{copied ? 'Copied!' : 'Copy to Clipboard'}</button>
+          textShadow: '0 0 8px rgba(192,200,212,0.3)',
+        }}>{copied ? 'Copied!' : 'Copy Sharpened Text'}</button>
         <button onClick={handleSave} style={{
           padding: '10px 24px', fontSize: 13, fontWeight: 600,
-          background: 'transparent', color: '#D4943A',
-          border: '1px solid #D4943A', borderRadius: 8, cursor: 'pointer',
+          background: 'transparent', color: '#8B95A3',
+          border: '1px solid #8B95A3', borderRadius: 8, cursor: 'pointer',
         }}>↓ Save to Computer</button>
       </div>
 
       {/* Tips panel */}
-      {showTips && <TipsPanel mode="refine" onClose={() => setShowTips(false)} />}
+      {showTips && <TipsPanel mode="refine" onClose={() => setShowTips(false)} onInsertTip={handleInsertTip} />}
     </div>
   );
 }

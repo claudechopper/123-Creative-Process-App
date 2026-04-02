@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts } from './storage';
+import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadProjects, reorderProjects } from './storage';
 
 export default function GapMode({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
@@ -8,6 +8,8 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [now, setNow] = useState(Date.now());
   const [overrideTaps, setOverrideTaps] = useState({});
   const [expandedProjects, setExpandedProjects] = useState({});
+  const [draggedProjectId, setDraggedProjectId] = useState(null);
+  const [dragOverProjectId, setDragOverProjectId] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -27,7 +29,7 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   const handleOverrideTap = (id) => {
     const taps = (overrideTaps[id] || 0) + 1;
-    if (taps >= 3) {
+    if (taps >= 2) {
       updateDraft(id, { unlocksAt: Date.now() });
       refresh();
       setOverrideTaps(prev => ({ ...prev, [id]: 0 }));
@@ -55,6 +57,60 @@ export default function GapMode({ onNavigate, onRefine }) {
     return first + (text.length > 40 ? '...' : '');
   };
 
+  // Project drag and drop
+  const handleProjectDragStart = (e, id) => {
+    setDraggedProjectId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleProjectDragOver = (e, id) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (id !== draggedProjectId) setDragOverProjectId(id);
+  };
+
+  const handleProjectDrop = (e, targetId) => {
+    e.preventDefault();
+    if (!draggedProjectId || draggedProjectId === targetId) {
+      setDraggedProjectId(null);
+      setDragOverProjectId(null);
+      return;
+    }
+    doProjectReorder(draggedProjectId, targetId);
+    setDraggedProjectId(null);
+    setDragOverProjectId(null);
+  };
+
+  const handleProjectDragEnd = () => {
+    setDraggedProjectId(null);
+    setDragOverProjectId(null);
+  };
+
+  const doProjectReorder = (fromId, toId) => {
+    const projects = loadProjects();
+    const ids = projects.map(p => p.id);
+    // Include uncategorized at the end
+    if (!ids.includes('uncategorized')) ids.push('uncategorized');
+    const fromIdx = ids.indexOf(fromId);
+    const toIdx = ids.indexOf(toId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, fromId);
+    // Only reorder real projects (not uncategorized)
+    const realIds = ids.filter(id => id !== 'uncategorized');
+    reorderProjects(realIds);
+    refresh();
+  };
+
+  const moveProject = (id, direction) => {
+    const projectIds = groups.map(g => g.project.id);
+    const idx = projectIds.indexOf(id);
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= projectIds.length) return;
+    doProjectReorder(id, projectIds[newIdx]);
+  };
+
   const allDrafts = loadDrafts();
   const hasDrafts = allDrafts.length > 0;
 
@@ -72,7 +128,7 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', color: '#4A5E48' }}>
-          draft<span style={{ color: '#6B8B68' }}>&nbsp;& sharpen</span>
+          draft, stop<span style={{ color: '#D4943A' }}>&nbsp;& sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -82,13 +138,13 @@ export default function GapMode({ onNavigate, onRefine }) {
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #6B8B68',
+              border: '2px solid #8B95A3',
             }}>
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
               ) : (
                 <div style={{
-                  width: '100%', height: '100%', background: '#6B8B68',
+                  width: '100%', height: '100%', background: '#8B95A3',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#FFF', fontSize: 12, fontWeight: 700,
                 }}>{user.name?.[0] || '?'}</div>
@@ -97,8 +153,9 @@ export default function GapMode({ onNavigate, onRefine }) {
           ) : (
             <button onClick={login} style={{
               padding: '6px 12px', fontSize: 11, border: 'none',
-              borderRadius: 8, background: '#6B8B68', color: '#FFF',
+              borderRadius: 8, background: '#8B95A3', color: '#FFF',
               cursor: 'pointer', fontWeight: 600,
+              textShadow: '0 0 8px rgba(192,200,212,0.3)',
             }}>Sign in</button>
           )}
         </div>
@@ -123,28 +180,49 @@ export default function GapMode({ onNavigate, onRefine }) {
             <p style={{ fontSize: 14 }}>No drafts yet.</p>
             <button onClick={() => onNavigate('flow')} style={{
               marginTop: 16, padding: '12px 28px', fontSize: 14, fontWeight: 600,
-              background: '#6B8B68', color: '#FFF', border: 'none',
+              background: '#8B95A3', color: '#FFF', border: 'none',
               borderRadius: 10, cursor: 'pointer',
+              textShadow: '0 0 8px rgba(192,200,212,0.3)',
             }}>Start Your First Flow Session</button>
           </div>
         )}
 
-        {groups.map(group => {
+        {groups.map((group, gIdx) => {
           const isExpanded = expandedProjects[group.project.id] !== false;
+          const isDraggedProject = group.project.id === draggedProjectId;
+          const isDragOverProject = group.project.id === dragOverProjectId;
           return (
-            <div key={group.project.id} style={{ marginBottom: 16 }}>
+            <div key={group.project.id} style={{
+              marginBottom: 16,
+              opacity: isDraggedProject ? 0.4 : 1,
+              borderTop: isDragOverProject ? '2px solid #8B95A3' : '2px solid transparent',
+            }}
+              draggable={groups.length > 1}
+              onDragStart={(e) => handleProjectDragStart(e, group.project.id)}
+              onDragOver={(e) => handleProjectDragOver(e, group.project.id)}
+              onDrop={(e) => handleProjectDrop(e, group.project.id)}
+              onDragEnd={handleProjectDragEnd}
+            >
               {/* Project header */}
               {groups.length > 1 && (
-                <div
-                  onClick={() => toggleProject(group.project.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
-                    cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#4A5E48',
-                    userSelect: 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 10 }}>{isExpanded ? '▾' : '▸'}</span>
-                  <span>{group.project.name}</span>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
+                  fontSize: 13, fontWeight: 600, color: '#4A5E48',
+                  userSelect: 'none',
+                }}>
+                  {/* Arrow buttons for project reorder */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <button onClick={() => moveProject(group.project.id, -1)} disabled={gIdx === 0} style={{
+                      background: 'transparent', border: 'none', color: gIdx === 0 ? '#C8D8C5' : '#6B8B68',
+                      cursor: gIdx === 0 ? 'default' : 'pointer', fontSize: 10, padding: '0 4px', lineHeight: 1,
+                    }}>▲</button>
+                    <button onClick={() => moveProject(group.project.id, 1)} disabled={gIdx === groups.length - 1} style={{
+                      background: 'transparent', border: 'none', color: gIdx === groups.length - 1 ? '#C8D8C5' : '#6B8B68',
+                      cursor: gIdx === groups.length - 1 ? 'default' : 'pointer', fontSize: 10, padding: '0 4px', lineHeight: 1,
+                    }}>▼</button>
+                  </div>
+                  <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 10 }}>{isExpanded ? '▾' : '▸'}</span>
+                  <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer' }}>{group.project.name}</span>
                   <span style={{ fontSize: 11, color: '#7B9478', fontWeight: 400 }}>({group.drafts.length})</span>
                 </div>
               )}
@@ -170,7 +248,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                       }}>{getTitle(draft.text)}</div>
                       <div style={{ fontSize: 11, color: '#7B9478', marginTop: 4 }}>
                         {draft.wordCount} words · {new Date(draft.createdAt).toLocaleDateString()}
-                        {draft.refined && ' · Refined ✓'}
+                        {draft.refined && ' · Sharpened ✓'}
                       </div>
                     </div>
 
@@ -178,9 +256,10 @@ export default function GapMode({ onNavigate, onRefine }) {
                       {isReady ? (
                         <button onClick={() => onRefine(draft)} style={{
                           padding: '8px 16px', fontSize: 12, fontWeight: 600,
-                          background: '#D4943A', color: '#FFF', border: 'none',
+                          background: '#8B95A3', color: '#FFF', border: 'none',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                        }}>Ready to refine →</button>
+                          textShadow: '0 0 8px rgba(192,200,212,0.3)',
+                        }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -192,7 +271,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                               borderRadius: 6, background: 'transparent', color: '#6B8B68',
                               cursor: 'pointer',
                             }}>
-                              {taps === 0 ? 'I need it now' : taps === 1 ? 'Are you sure?' : 'Last chance...'}
+                              {taps === 0 ? 'I need it now' : 'Are you sure?'}
                             </button>
                           </div>
                           {taps === 0 && (
