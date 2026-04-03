@@ -93,7 +93,7 @@ const STEPS = [
     body: 'That\'s the Draft, Stop & Sharpen method: write freely, rest your draft, then sharpen with fresh eyes. The best creative work happens in stages.',
     action: 'Click "Finish Tour" to start writing!',
     waitFor: 'finish',
-    page: 'gap',
+    page: null,
   },
 ];
 
@@ -105,8 +105,11 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   const current = STEPS[step];
 
   // Navigate to the correct page for this step
+  // Skip navigation if we just auto-advanced from leaveRefine (page already changed)
   useEffect(() => {
     if (current.page && current.page !== currentPage && onNavigatePage) {
+      // Don't force navigation on the final step — user is already where they need to be
+      if (current.waitFor === 'finish') return;
       onNavigatePage(current.page);
     }
   }, [step, current.page, currentPage, onNavigatePage]);
@@ -180,14 +183,15 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   }, [currentPage, current.waitFor]);
 
   // Auto-advance: page changed and matches next step's page
+  // But NOT if current step has its own waitFor handler (leaveRefine, sessionEnd, etc.)
   useEffect(() => {
-    if (step < STEPS.length - 1) {
+    if (step < STEPS.length - 1 && current.waitFor === 'next') {
       const nextStep = STEPS[step + 1];
-      if (current.page !== currentPage && nextStep.page === currentPage) {
+      if (current.page && current.page !== currentPage && nextStep.page === currentPage) {
         setStep(s => s + 1);
       }
     }
-  }, [currentPage, step, current.page]);
+  }, [currentPage, step, current.page, current.waitFor]);
 
   // Track previous step for auto-advance logic
   useEffect(() => {
