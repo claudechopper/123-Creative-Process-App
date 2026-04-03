@@ -19,6 +19,14 @@ export function loadDrafts() {
   } catch { return []; }
 }
 
+export function loadActiveDrafts() {
+  return loadDrafts().filter(d => !d.refined);
+}
+
+export function loadDoneDrafts() {
+  return loadDrafts().filter(d => d.refined);
+}
+
 export function saveDrafts(drafts) {
   localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
 }

@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadProjects, reorderProjects, renameProject, addProject, moveDraftToProject, reorderDrafts } from './storage';
+import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, moveDraftToProject, reorderDrafts } from './storage';
 
 export default function GapMode({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
-  const [groups, setGroups] = useState(groupDraftsByProject);
+  const [groups, setGroups] = useState(() => {
+    const all = groupDraftsByProject();
+    return all.map(g => ({ ...g, drafts: g.drafts.filter(d => !d.refined) })).filter(g => g.drafts.length > 0 || g.project.id !== 'uncategorized');
+  });
   const [now, setNow] = useState(Date.now());
   const [overrideTaps, setOverrideTaps] = useState({});
   const [expandedProjects, setExpandedProjects] = useState({});
@@ -25,7 +28,10 @@ export default function GapMode({ onNavigate, onRefine }) {
     return () => clearInterval(interval);
   }, []);
 
-  const refresh = useCallback(() => setGroups(groupDraftsByProject()), []);
+  const refresh = useCallback(() => {
+    const all = groupDraftsByProject();
+    setGroups(all.map(g => ({ ...g, drafts: g.drafts.filter(d => !d.refined) })).filter(g => g.drafts.length > 0 || g.project.id !== 'uncategorized'));
+  }, []);
 
   useEffect(() => {
     window.addEventListener('focus', refresh);
@@ -203,7 +209,8 @@ export default function GapMode({ onNavigate, onRefine }) {
     setEditingName('');
   };
 
-  const allDrafts = loadDrafts();
+  const allDrafts = loadActiveDrafts();
+  const doneCount = loadDoneDrafts().length;
   const hasDrafts = allDrafts.length > 0;
 
   return (
@@ -226,6 +233,11 @@ export default function GapMode({ onNavigate, onRefine }) {
             padding: '6px 12px', fontSize: 11, border: '1px solid #C8A8A6',
             borderRadius: 8, background: 'transparent', color: '#5E3A38', cursor: 'pointer',
           }}>+ New Session</button>
+          <button onClick={() => onNavigate('done')} style={{
+            padding: '6px 12px', fontSize: 11, border: '1px solid #D4943A',
+            borderRadius: 8, background: 'transparent', color: '#D4943A', cursor: 'pointer',
+            fontWeight: 600,
+          }}>Finished ✭</button>
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #A8B4C4',

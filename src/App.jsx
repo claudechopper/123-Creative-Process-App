@@ -4,6 +4,7 @@ import { setLoggedIn, syncAllDrafts } from './storage';
 import FlowMode from './FlowMode';
 import GapMode from './GapMode';
 import RefineMode from './RefineMode';
+import DonePage from './DonePage';
 import Banner from './Banner';
 import OnboardingPopup, { isTourActive, clearTour } from './OnboardingPopup';
 import GuidedTour from './GuidedTour';
@@ -83,6 +84,7 @@ export default function App() {
       {mode === 'refine' && refineDraft && (
         <RefineMode draft={refineDraft} onNavigate={handleNavigate} />
       )}
+      {mode === 'done' && <DonePage onNavigate={handleNavigate} onRefine={handleRefine} />}
       <Banner mode={mode} />
       {tourActive && (
         <GuidedTour

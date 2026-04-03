@@ -8,8 +8,8 @@ export default function Banner({ mode }) {
 
   if (dismissed) return null;
 
-  const bg = mode === 'flow' ? '#EDE5D4' : mode === 'gap' ? '#E5D8D5' : '#14201A';
-  const color = mode === 'refine' ? '#7A9A80' : mode === 'gap' ? '#5E4A48' : '#8B7B6B';
+  const bg = mode === 'done' ? '#F0E8D0' : mode === 'flow' ? '#EDE5D4' : mode === 'gap' ? '#E5D8D5' : '#14201A';
+  const color = mode === 'done' ? '#8B7B6B' : mode === 'refine' ? '#7A9A80' : mode === 'gap' ? '#5E4A48' : '#8B7B6B';
 
   const handleDownloadAll = () => {
     const drafts = loadDrafts();

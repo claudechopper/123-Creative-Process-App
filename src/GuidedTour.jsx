@@ -82,7 +82,7 @@ const STEPS = [
   },
   {
     title: 'Saving Your Sharpened Work',
-    body: 'When done editing, click "Finish & Save to Browser/Account" to save. OR just hit "← Back to Drafts" and it will also automatically save to your browser. You can also copy your sharpened text or download it to your computer for extra safe keeping.',
+    body: 'Click "Finish & Save" to mark this piece as done — it moves to your Finished Pieces page. OR click "← Back to Drafts" to save your progress and keep working later. You can also copy or download your text for extra safe keeping.',
     action: 'Try clicking "Finish & Save" or "← Back to Drafts", or click Next.',
     waitFor: 'leaveRefine',
     page: 'refine',
@@ -105,11 +105,14 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   const current = STEPS[step];
 
   // Navigate to the correct page for this step
-  // Skip navigation if we just auto-advanced from leaveRefine (page already changed)
   useEffect(() => {
     if (current.page && current.page !== currentPage && onNavigatePage) {
-      // Don't force navigation on the final step — user is already where they need to be
+      // Don't force navigation when we expect the user to leave (leaveRefine)
+      if (current.waitFor === 'leaveRefine') return;
+      // Don't force navigation on the final step
       if (current.waitFor === 'finish') return;
+      // Don't force navigation on sessionEnd — user is navigating via save modal
+      if (current.waitFor === 'sessionEnd') return;
       onNavigatePage(current.page);
     }
   }, [step, current.page, currentPage, onNavigatePage]);

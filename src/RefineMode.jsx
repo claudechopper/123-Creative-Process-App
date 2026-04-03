@@ -76,7 +76,7 @@ export default function RefineMode({ draft, onNavigate }) {
 
   const handleDone = () => {
     updateDraft(draft.id, { refined: true, refinedText: editedText });
-    onNavigate('gap');
+    onNavigate('done');
   };
 
   const getTitle = (text) => {
