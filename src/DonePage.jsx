@@ -78,7 +78,13 @@ export default function DonePage({ onNavigate, onRefine }) {
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <NavBar currentPage="done" onNavigate={onNavigate} />
+          <NavBar currentPage="done" onNavigate={onNavigate} onSharpen={() => {
+            if (drafts.length > 0) {
+              onRefine(drafts[0]);
+            } else {
+              onNavigate('gap');
+            }
+          }} />
           {user ? (
             <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #D4943A' }}>
               {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} /> : (

@@ -1,4 +1,4 @@
-export default function NavBar({ currentPage, onNavigate }) {
+export default function NavBar({ currentPage, onNavigate, onSharpen }) {
   const pages = [
     { id: 'flow', label: '✍️ 1st Draft', color: '#A8B4C4', glow: '0 0 10px rgba(168,180,196,0.5)' },
     { id: 'gap', label: '🌙 All Drafts/Incubation', color: '#C0392B', glow: 'none' },
@@ -12,12 +12,14 @@ export default function NavBar({ currentPage, onNavigate }) {
     }}>
       {pages.map(p => {
         const isActive = currentPage === p.id;
-        // Sharpen page needs a draft — redirect to gap page instead if clicked from non-refine
         const handleClick = () => {
-          if (isActive) return; // Already on this page
-          if (p.needsDraft && currentPage !== 'refine') {
-            // Need to pick a draft first — go to Drafts page
-            if (currentPage !== 'gap') onNavigate('gap');
+          if (isActive) return;
+          if (p.needsDraft) {
+            if (onSharpen) {
+              onSharpen();
+            } else {
+              onNavigate('gap');
+            }
             return;
           }
           onNavigate(p.id);

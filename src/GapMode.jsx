@@ -19,6 +19,7 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [dragOverDraftId, setDragOverDraftId] = useState(null);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [movingDraftId, setMovingDraftId] = useState(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [editingTitleId, setEditingTitleId] = useState(null);
@@ -230,7 +231,15 @@ export default function GapMode({ onNavigate, onRefine }) {
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <NavBar currentPage="gap" onNavigate={onNavigate} />
+          <NavBar currentPage="gap" onNavigate={onNavigate} onSharpen={() => {
+            // Find first ready draft and open it for sharpening
+            const readyDraft = allDrafts.find(d => d.unlocksAt <= Date.now());
+            if (readyDraft) {
+              onRefine(readyDraft);
+            } else {
+              alert('No drafts are ready to sharpen yet. Wait for the incubation period to finish.');
+            }
+          }} />
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #A8B4C4',
@@ -425,6 +434,37 @@ export default function GapMode({ onNavigate, onRefine }) {
                           )}
                         </div>
                       )}
+                      {/* Move to project */}
+                      <div style={{ position: 'relative' }}>
+                        <button onClick={(e) => { e.stopPropagation(); setMovingDraftId(movingDraftId === draft.id ? null : draft.id); }} style={{
+                          padding: '4px 8px', fontSize: 10, background: 'transparent',
+                          border: '1px solid #C8A8A6', borderRadius: 4, color: '#8B6B68', cursor: 'pointer',
+                        }}>📁</button>
+                        {movingDraftId === draft.id && (
+                          <div style={{
+                            position: 'absolute', right: 0, top: '100%', marginTop: 4,
+                            background: '#FDF6EC', borderRadius: 8, padding: 8, minWidth: 160,
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.15)', border: '1px solid #D4C4A8',
+                            zIndex: 100,
+                          }}>
+                            <div style={{ fontSize: 10, fontWeight: 600, color: '#8B7B6B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Move to project:</div>
+                            {draft.projectId && (
+                              <button onClick={(e) => { e.stopPropagation(); moveDraftToProject(draft.id, null); setMovingDraftId(null); refresh(); }} style={{
+                                display: 'block', width: '100%', padding: '6px 10px', fontSize: 11, textAlign: 'left',
+                                background: 'transparent', border: 'none', color: '#5E3A38', cursor: 'pointer',
+                                borderRadius: 4,
+                              }} onMouseEnter={e => e.target.style.background = '#F0E0DE'} onMouseLeave={e => e.target.style.background = 'transparent'}>Uncategorized</button>
+                            )}
+                            {loadProjects().filter(p => p.id !== draft.projectId).map(p => (
+                              <button key={p.id} onClick={(e) => { e.stopPropagation(); moveDraftToProject(draft.id, p.id); setMovingDraftId(null); refresh(); }} style={{
+                                display: 'block', width: '100%', padding: '6px 10px', fontSize: 11, textAlign: 'left',
+                                background: 'transparent', border: 'none', color: '#5E3A38', cursor: 'pointer',
+                                borderRadius: 4,
+                              }} onMouseEnter={e => e.target.style.background = '#F0E0DE'} onMouseLeave={e => e.target.style.background = 'transparent'}>{p.name}</button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <button onClick={() => handleDelete(draft.id)} style={{
                         padding: '4px 8px', fontSize: 12, background: 'transparent',
                         border: 'none', color: '#B89B98', cursor: 'pointer',
