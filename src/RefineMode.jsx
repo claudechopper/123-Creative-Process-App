@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject, groupDraftsByProject } from './storage';
+import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject, groupDraftsByProject, deleteDraft } from './storage';
 import TipsPanel from './TipsPanel';
 
 export default function RefineMode({ draft, onNavigate }) {
@@ -281,6 +281,7 @@ export default function RefineMode({ draft, onNavigate }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {/* Card title */}
+                      {/* Delete button - top right */}
                       {d.showTitle && (
                         editingCardTitleId === d.id ? (
                           <input
@@ -322,6 +323,23 @@ export default function RefineMode({ draft, onNavigate }) {
                         }}>{getTitle(d.text)}</div>
                       )}
                     </div>
+                    {/* Delete button */}
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Delete this draft card? This cannot be undone.')) {
+                        deleteDraft(d.id);
+                        setLocalDraftOrder(null);
+                        setRefreshKey(k => k + 1);
+                        if (d.id === selectedOriginalId && projectDrafts.length > 1) {
+                          const other = projectDrafts.find(pd => pd.id !== d.id);
+                          if (other) setSelectedOriginalId(other.id);
+                        }
+                      }
+                    }} style={{
+                      background: 'transparent', border: 'none', color: '#5E7A62',
+                      cursor: 'pointer', fontSize: 14, padding: '4px 6px', flexShrink: 0,
+                      alignSelf: 'flex-start', marginTop: 2, opacity: 0.6,
+                    }}>×</button>
                   </div>
                 );
               })
@@ -377,6 +395,7 @@ export default function RefineMode({ draft, onNavigate }) {
                     addDraft({ text: newDraftText.trim(), wordCount: newDraftText.trim().split(/\s+/).length, projectId: draft.projectId });
                     setNewDraftText('');
                     setShowNewDraft(false);
+                    setLocalDraftOrder(null); // Reset order so new drafts appear
                     setRefreshKey(k => k + 1);
                   }} style={{
                     padding: '6px 14px', fontSize: 10, fontWeight: 600,
@@ -440,6 +459,7 @@ export default function RefineMode({ draft, onNavigate }) {
             });
             setSelectedImportIds([]);
             setShowImportList(false);
+            setLocalDraftOrder(null); // Reset order so new drafts appear
             setRefreshKey(k => k + 1);
           };
           return (
