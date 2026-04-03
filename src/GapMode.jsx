@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, deleteProject, moveDraftToProject, reorderDrafts } from './storage';
+import { groupDraftsByProject, updateDraft, deleteDraft, addDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, deleteProject, moveDraftToProject, reorderDrafts } from './storage';
 import NavBar from './NavBar';
 
 export default function GapMode({ onNavigate, onRefine }) {
@@ -22,6 +22,8 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [movingDraftId, setMovingDraftId] = useState(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [addingDraftToProject, setAddingDraftToProject] = useState(null);
+  const [newDraftText, setNewDraftText] = useState('');
   const [editingTitleId, setEditingTitleId] = useState(null);
   const [editingTitleText, setEditingTitleText] = useState('');
 
@@ -473,6 +475,47 @@ export default function GapMode({ onNavigate, onRefine }) {
                   </div>
                 );
               })}
+
+              {/* Add new draft to this project */}
+              {addingDraftToProject === group.project.id ? (
+                <div style={{ padding: '10px 12px', background: '#F5EDEB', borderRadius: 10, marginBottom: 8 }}>
+                  <textarea
+                    autoFocus
+                    value={newDraftText}
+                    onChange={(e) => setNewDraftText(e.target.value)}
+                    placeholder="Write or paste your draft here..."
+                    style={{
+                      width: '100%', minHeight: 80, padding: 10, fontSize: 13, lineHeight: 1.5,
+                      border: '1px solid #C8A8A6', borderRadius: 8, background: '#FDF6EC',
+                      color: '#5E3A38', resize: 'vertical', fontFamily: "'Source Serif 4', serif",
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <button onClick={() => {
+                      if (!newDraftText.trim()) return;
+                      addDraft({ text: newDraftText.trim(), wordCount: newDraftText.trim().split(/\s+/).length, projectId: group.project.id === 'uncategorized' ? null : group.project.id });
+                      setNewDraftText('');
+                      setAddingDraftToProject(null);
+                      refresh();
+                    }} style={{
+                      padding: '6px 14px', fontSize: 11, fontWeight: 600,
+                      background: '#D4943A', color: '#FFF', border: 'none',
+                      borderRadius: 6, cursor: 'pointer',
+                    }}>Save Draft</button>
+                    <button onClick={() => { setAddingDraftToProject(null); setNewDraftText(''); }} style={{
+                      padding: '6px 14px', fontSize: 11,
+                      background: 'transparent', border: '1px solid #C8A8A6',
+                      borderRadius: 6, color: '#8B6B68', cursor: 'pointer',
+                    }}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setAddingDraftToProject(group.project.id)} style={{
+                  width: '100%', padding: '8px', fontSize: 11, fontWeight: 600,
+                  background: 'transparent', border: '1px dashed #C8A8A6',
+                  borderRadius: 8, color: '#8B6B68', cursor: 'pointer', marginBottom: 8,
+                }}>+ Add Draft to {group.project.name}</button>
+              )}
             </div>
           );
         })}

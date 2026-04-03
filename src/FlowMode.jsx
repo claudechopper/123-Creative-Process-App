@@ -251,7 +251,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
             }}>↓ Save to Computer</button>
           )}
 
-          <NavBar currentPage="flow" onNavigate={onNavigate} />
+          <NavBar currentPage="flow" onNavigate={onNavigate} onSharpen={() => onNavigate('gap')} />
 
           {user ? (
             <div style={{

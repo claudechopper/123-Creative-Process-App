@@ -563,18 +563,13 @@ export default function RefineMode({ draft, onNavigate }) {
             onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
             onDrop={(e) => {
               const draftId = e.dataTransfer.getData('application/x-draft-id');
-              if (!draftId) return; // not a draft card drop, let browser handle
+              if (!draftId) return;
               e.preventDefault();
               const droppedText = e.dataTransfer.getData('text/plain');
               if (!droppedText) return;
-              const textarea = editTextareaRef.current;
-              if (!textarea) return;
-              // Insert at current cursor position or end
-              const pos = textarea.selectionStart ?? editedText.length;
-              const before = editedText.slice(0, pos);
-              const after = editedText.slice(pos);
-              const sep = (before && !before.endsWith('\n')) ? '\n\n' : '';
-              setEditedText(before + sep + droppedText + after);
+              // Always append to the end with separator
+              const sep = (editedText && !editedText.endsWith('\n')) ? '\n\n' : '';
+              setEditedText(editedText + sep + droppedText);
               setDraggedId(null);
               setDragOverId(null);
             }}
