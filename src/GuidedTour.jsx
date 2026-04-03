@@ -220,10 +220,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   }, [showSaveModal, current.waitFor, currentPage]);
 
   // Auto-advance: left the refine page (user clicked Back to Drafts or Finish & Save)
+  // Only fires if we were on refine and left — not if we haven't arrived yet
+  const prevPageRef = useRef(currentPage);
   useEffect(() => {
-    if (current.waitFor === 'leaveRefine' && currentPage !== 'refine') {
+    if (current.waitFor === 'leaveRefine' && prevPageRef.current === 'refine' && currentPage !== 'refine') {
       setStep(s => s + 1);
     }
+    prevPageRef.current = currentPage;
   }, [currentPage, current.waitFor]);
 
   // Auto-advance: page changed and matches next step's page
@@ -303,7 +306,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
             <span style={{ color: '#C0392B' }}>Stop</span>
             {' '}
             <span style={{ color: '#D4943A', textShadow: '0 0 10px rgba(212,148,58,0.5)' }}>& Sharpen</span>
-            {' '}Method
+            {' '}<span style={{ fontSize: '0.6em' }}>Method</span>
           </p>
           <p><span style={{ color: '#A8B4C4' }}>Draft</span> freely → <span style={{ color: '#C0392B' }}>Stop</span> & Incubate → <span style={{ color: '#5A8F6A' }}>Sharpen</span> & Edit → <span style={{ color: '#D4943A' }}>Finished Works</span> ✭</p>
           <p style={{ marginTop: 8 }}>The best creative work happens in stages.</p>

@@ -543,13 +543,11 @@ export default function RefineMode({ draft, onNavigate }) {
 
         {/* Editable — shimmering gold text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <div style={{ textAlign: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: '#7A9A80', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700 }}>Final</span>
-          </div>
           <div style={{
-            background: t.header, padding: '10px 14px', borderRadius: '10px 10px 0 0',
+            background: t.header, padding: '6px 14px 10px', borderRadius: '10px 10px 0 0',
             textAlign: 'center',
           }}>
+            <div style={{ fontSize: 10, color: '#7A9A80', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 2 }}>Final</div>
             <div style={{
               fontSize: 16, fontWeight: 700, letterSpacing: '0.5px',
               color: '#E2B44A',

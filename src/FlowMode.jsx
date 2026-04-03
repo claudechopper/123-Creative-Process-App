@@ -12,7 +12,7 @@ const silverShimmer = {
   textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
 };
 
-export default function FlowMode({ onNavigate, onRefine, tourActive, onTourEnd, onTourState }) {
+export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour, onTourEnd, onTourState }) {
   const { user, login } = useAuth();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
@@ -337,11 +337,19 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onTourEnd, 
                 }}>Start Session</button>
               )}
 
-              <div style={{ marginTop: 20 }}>
+              <div style={{ marginTop: 20, display: 'flex', gap: 16, justifyContent: 'center' }}>
                 <button onClick={() => { resetOnboarding(); window.location.reload(); }} style={{
                   background: 'none', border: 'none', color: '#B8A898',
                   fontSize: 11, cursor: 'pointer', textDecoration: 'underline',
                 }}>Show intro again</button>
+                {onStartTour && (
+                  <button onClick={onStartTour} style={{
+                    padding: '6px 16px', fontSize: 11, fontWeight: 600,
+                    background: '#D4943A', color: '#FFF', border: 'none',
+                    borderRadius: 8, cursor: 'pointer',
+                    textShadow: '0 0 8px rgba(212,148,58,0.5)',
+                  }}>🗺️ Take the Tour</button>
+                )}
               </div>
             </div>
           ) : (

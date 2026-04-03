@@ -154,8 +154,15 @@ export default function GapMode({ onNavigate, onRefine }) {
         }
       }
     } else {
-      // Cross-project move
-      moveDraftToProject(fromDraftId, targetProjectId === 'uncategorized' ? null : targetProjectId);
+      // Cross-project move — place at top of target project
+      const targetPid = targetProjectId === 'uncategorized' ? null : targetProjectId;
+      moveDraftToProject(fromDraftId, targetPid);
+      // Reorder to put at top
+      const targetGroup = groups.find(g => g.project.id === (targetProjectId || 'uncategorized'));
+      if (targetGroup) {
+        const ids = [fromDraftId, ...targetGroup.drafts.map(d => d.id)];
+        reorderDrafts(targetPid, ids);
+      }
       refresh();
     }
     setDraggedDraftId(null); setDragOverDraftId(null); setDragOverGroupId(null);
@@ -189,8 +196,14 @@ export default function GapMode({ onNavigate, onRefine }) {
     const projectId = e.dataTransfer.getData('application/x-project-id');
 
     if (draftId) {
-      // Draft card dropped on a project group
-      moveDraftToProject(draftId, targetGroupId === 'uncategorized' ? null : targetGroupId);
+      // Draft card dropped on a project group — place at top
+      const targetPid = targetGroupId === 'uncategorized' ? null : targetGroupId;
+      moveDraftToProject(draftId, targetPid);
+      const targetGroup = groups.find(g => g.project.id === targetGroupId);
+      if (targetGroup) {
+        const ids = [draftId, ...targetGroup.drafts.map(d => d.id)];
+        reorderDrafts(targetPid, ids);
+      }
       refresh();
     } else if (projectId && projectId !== targetGroupId) {
       doProjectReorder(projectId, targetGroupId);
