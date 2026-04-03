@@ -127,8 +127,17 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   const [step, setStep] = useState(0);
   const prevStepRef = useRef(0);
   const highlightIntervalRef = useRef(null);
+  const advancingRef = useRef(false);
 
   const current = STEPS[step];
+
+  // Safe advance — prevents multiple effects from advancing in the same cycle
+  const safeAdvance = () => {
+    if (advancingRef.current) return;
+    advancingRef.current = true;
+    setStep(s => s + 1);
+    setTimeout(() => { advancingRef.current = false; }, 100);
+  };
 
   // Navigate to the correct page for this step
   useEffect(() => {
@@ -195,18 +204,18 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
 
   // Auto-advance: time picker opened
   useEffect(() => {
-    if (current.waitFor === 'timePicker' && showTimePicker) setStep(s => s + 1);
+    if (current.waitFor === 'timePicker' && showTimePicker) safeAdvance();
   }, [showTimePicker, current.waitFor]);
 
   // Auto-advance: session started
   useEffect(() => {
-    if (current.waitFor === 'sessionStart' && sessionActive) setStep(s => s + 1);
+    if (current.waitFor === 'sessionStart' && sessionActive) safeAdvance();
   }, [sessionActive, current.waitFor]);
 
   // Auto-advance: session ended (user clicked finish session)
   useEffect(() => {
     if (current.waitFor === 'sessionEnd' && !sessionActive && prevStepRef.current === step) {
-      setStep(s => s + 1);
+      safeAdvance();
     }
   }, [sessionActive, current.waitFor, step]);
 
@@ -216,7 +225,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       // Wait for save modal to close (draft was saved)
     }
     if (current.waitFor === 'savedDraft' && !showSaveModal && currentPage === 'gap') {
-      setStep(s => s + 1);
+      safeAdvance();
     }
   }, [showSaveModal, current.waitFor, currentPage]);
 
@@ -225,7 +234,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   const prevPageRef = useRef(currentPage);
   useEffect(() => {
     if (current.waitFor === 'leaveRefine' && prevPageRef.current === 'refine' && currentPage !== 'refine') {
-      setStep(s => s + 1);
+      safeAdvance();
     }
     prevPageRef.current = currentPage;
   }, [currentPage, current.waitFor]);
@@ -236,7 +245,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
     if (step < STEPS.length - 1 && current.waitFor === 'next') {
       const nextStep = STEPS[step + 1];
       if (current.page && current.page !== currentPage && nextStep.page === currentPage) {
-        setStep(s => s + 1);
+        safeAdvance();
       }
     }
   }, [currentPage, step, current.page, current.waitFor]);
