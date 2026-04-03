@@ -59,7 +59,7 @@ const STEPS = [
     highlightText: ['Save as New'],
   },
   {
-    title: '🌙 The All Drafts/Incubation Page',
+    title: '🌙 The Drafts/Stop Page',
     body: 'This is your Stop & Incubate page — where your drafts rest and live. You can organize them into projects, drag them between projects, and create new projects here.',
     action: 'Click Next to continue.',
     waitFor: 'next',
@@ -74,7 +74,6 @@ const STEPS = [
     highlightText: ['Ready to sharpen', 'Override'],
     position: 'center',
   },
-  // --- Step 10 (index 9): Sharpen page intro ---
   {
     title: '✏️ The Sharpen & Edit Page',
     body: 'This is where you refine your work. Your original draft stays on the left (read-only). Your "Final" sharpened edit is on the right. You can drag cards from the left and drop them into the right column.',
@@ -82,17 +81,15 @@ const STEPS = [
     waitFor: 'next',
     page: 'refine',
   },
-  // --- Step 11 (index 10): Save & Back to Drafts ---
   {
     title: 'Save Progress & Continue Later',
     body: 'Click "← Save & Back to Drafts" to save your work-in-progress and return to the All Drafts page. You can come back and keep sharpening anytime.',
-    action: 'Click "← Save & Back to Drafts" now, or click Next.',
-    waitFor: 'next',
+    action: 'Click "← Save & Back to Drafts" now.',
+    waitFor: 'leaveRefine',
     page: 'refine',
     highlightText: ['Save & Back'],
     blockOtherButtons: true,
   },
-  // --- Step 12 (index 11): Back on Drafts ---
   {
     title: 'Back on Drafts — Your Work is Saved',
     body: 'See? Your draft is still here, saved with your progress. Now let\'s go back to the Sharpen & Edit page to see how to finish a piece.',
@@ -100,17 +97,15 @@ const STEPS = [
     waitFor: 'next',
     page: 'gap',
   },
-  // --- Step 13 (index 12): Finish & Save ---
   {
     title: 'Finish & Polish',
     body: 'When your edit is truly done, click "Finish & Save ✓" — this moves your piece to the ✭ Finished Works page, where all your completed work lives.',
-    action: 'Click "Finish & Save ✓" now, or click Next.',
-    waitFor: 'next',
+    action: 'Click "Finish & Save ✓" now.',
+    waitFor: 'leaveRefine',
     page: 'refine',
     highlightText: ['Finish & Save'],
     blockOtherButtons: true,
   },
-  // --- Step 14 (index 13): Finished Works page ---
   {
     title: '✭ Finished Works',
     body: 'This is where all your finished, sharpened pieces live — your portfolio of completed work. You can copy, download, or re-edit any piece from here. (You can always override and re-edit these as well.)',
@@ -118,7 +113,6 @@ const STEPS = [
     waitFor: 'next',
     page: 'done',
   },
-  // --- Step 15 (index 14): Final ---
   {
     title: 'You\'re All Set!',
     body: null,
@@ -139,7 +133,12 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   // Navigate to the correct page for this step
   useEffect(() => {
     if (current.page && current.page !== currentPage && onNavigatePage) {
+      // For leaveRefine: only skip if we're already on the target page
+      // (user needs to arrive first before they can leave)
+      if (current.waitFor === 'leaveRefine' && currentPage === current.page) return;
+      // Don't force navigation on the final step
       if (current.waitFor === 'finish') return;
+      // Don't force navigation on sessionEnd — user is navigating via save modal
       if (current.waitFor === 'sessionEnd') return;
       onNavigatePage(current.page);
     }
@@ -147,6 +146,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
 
   // Highlight target elements + optional button blocking
   useEffect(() => {
+    // Remove old overlay
     const oldOverlay = document.getElementById('tour-block-overlay');
     if (oldOverlay) oldOverlay.remove();
 
@@ -170,6 +170,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       });
     };
 
+    // Add blocking overlay if needed
     if (current.blockOtherButtons) {
       const overlay = document.createElement('div');
       overlay.id = 'tour-block-overlay';
@@ -202,26 +203,48 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
     if (current.waitFor === 'sessionStart' && sessionActive) setStep(s => s + 1);
   }, [sessionActive, current.waitFor]);
 
-  // Auto-advance: session ended
+  // Auto-advance: session ended (user clicked finish session)
   useEffect(() => {
     if (current.waitFor === 'sessionEnd' && !sessionActive && prevStepRef.current === step) {
       setStep(s => s + 1);
     }
   }, [sessionActive, current.waitFor, step]);
 
-  // Auto-advance: page changed and matches NEXT step's page
-  // This handles when user clicks a highlighted button that navigates (e.g. Save & Back, Finish & Save)
+  // Auto-advance: save modal appeared
+  useEffect(() => {
+    if (current.waitFor === 'savedDraft' && showSaveModal) {
+      // Wait for save modal to close (draft was saved)
+    }
+    if (current.waitFor === 'savedDraft' && !showSaveModal && currentPage === 'gap') {
+      setStep(s => s + 1);
+    }
+  }, [showSaveModal, current.waitFor, currentPage]);
+
+  // Auto-advance: left the refine page (user clicked Back to Drafts or Finish & Save)
+  // Only fires if we were on refine and left — not if we haven't arrived yet
+  const prevPageRef = useRef(currentPage);
+  useEffect(() => {
+    if (current.waitFor === 'leaveRefine' && prevPageRef.current === 'refine' && currentPage !== 'refine') {
+      setStep(s => s + 1);
+    }
+    prevPageRef.current = currentPage;
+  }, [currentPage, current.waitFor]);
+
+  // Auto-advance: page changed and matches next step's page
+  // But NOT if current step has its own waitFor handler (leaveRefine, sessionEnd, etc.)
   useEffect(() => {
     if (step < STEPS.length - 1 && current.waitFor === 'next') {
       const nextStep = STEPS[step + 1];
-      if (nextStep.page && current.page !== currentPage && nextStep.page === currentPage) {
+      if (current.page && current.page !== currentPage && nextStep.page === currentPage) {
         setStep(s => s + 1);
       }
     }
   }, [currentPage, step, current.page, current.waitFor]);
 
-  // Track previous step
-  useEffect(() => { prevStepRef.current = step; }, [step]);
+  // Track previous step for auto-advance logic
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
 
   const handleNext = () => {
     if (current.waitFor === 'finish') { clearTour(); onEnd(); return; }
@@ -230,17 +253,19 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
 
   const handleBack = () => {
     if (step > 0) {
-      const prevStepData = STEPS[step - 1];
-      if (prevStepData.page && prevStepData.page !== current.page && onNavigatePage) {
+      const newStep = step - 1;
+      const prevStepData = STEPS[newStep];
+      if (prevStepData.page !== current.page && onNavigatePage) {
         onNavigatePage(prevStepData.page);
       }
-      setStep(step - 1);
+      setStep(newStep);
     }
   };
 
   const handleSkip = () => { clearTour(); onEnd(); };
 
   const isCentered = current.position === 'center';
+  const showNext = current.waitFor === 'next' || current.waitFor === 'finish' || current.waitFor === 'sessionEnd' || current.waitFor === 'savedDraft' || current.waitFor === 'leaveRefine';
 
   return (
     <div style={{
@@ -300,11 +325,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
             borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',
           }}>← Back</button>
         )}
-        <button onClick={handleNext} style={{
-          padding: '8px 20px', fontSize: 12, fontWeight: 700,
-          background: '#D4943A', color: '#FFF', border: 'none',
-          borderRadius: 8, cursor: 'pointer',
-        }}>{current.waitFor === 'finish' ? 'Finish Tour ✓' : 'Next →'}</button>
+        {showNext && (
+          <button onClick={handleNext} style={{
+            padding: '8px 20px', fontSize: 12, fontWeight: 700,
+            background: '#D4943A', color: '#FFF', border: 'none',
+            borderRadius: 8, cursor: 'pointer',
+          }}>{current.waitFor === 'finish' ? 'Finish Tour ✓' : 'Next →'}</button>
+        )}
       </div>
     </div>
   );
