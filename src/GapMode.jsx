@@ -17,6 +17,8 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [editingName, setEditingName] = useState('');
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [editingTitleId, setEditingTitleId] = useState(null);
+  const [editingTitleText, setEditingTitleText] = useState('');
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -344,10 +346,35 @@ export default function GapMode({ onNavigate, onRefine }) {
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Card title */}
+                      {draft.showTitle && (
+                        editingTitleId === draft.id ? (
+                          <input
+                            autoFocus
+                            value={editingTitleText}
+                            onChange={(e) => setEditingTitleText(e.target.value)}
+                            onBlur={() => { updateDraft(draft.id, { title: editingTitleText }); setEditingTitleId(null); refresh(); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { updateDraft(draft.id, { title: editingTitleText }); setEditingTitleId(null); refresh(); } if (e.key === 'Escape') setEditingTitleId(null); }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ fontSize: 16, fontWeight: 700, color: '#2D8B5A', background: 'transparent', border: 'none', borderBottom: '2px solid #2D8B5A', padding: '0 2px', width: '100%', outline: 'none', fontFamily: "'Source Serif 4', serif" }}
+                          />
+                        ) : (
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setEditingTitleId(draft.id); setEditingTitleText(draft.title || ''); }}
+                            style={{ fontSize: 16, fontWeight: 700, color: '#2D8B5A', cursor: 'pointer', marginBottom: 4, fontFamily: "'Source Serif 4', serif" }}
+                          >
+                            {draft.title || <span style={{ opacity: 0.5, fontStyle: 'italic' }}>Click to add title...</span>}
+                          </div>
+                        )
+                      )}
                       <div style={{ fontSize: 14, fontWeight: 600, color: isReady ? '#4E3A38' : '#5E4A48', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getTitle(draft.text)}</div>
-                      <div style={{ fontSize: 11, color: '#94787B', marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: '#94787B', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                         {draft.wordCount} words · {new Date(draft.createdAt).toLocaleDateString()}
                         {draft.refined && ' · Sharpened ✓'}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); updateDraft(draft.id, { showTitle: !draft.showTitle }); refresh(); }}
+                          style={{ background: 'transparent', border: 'none', color: '#A8B4C4', cursor: 'pointer', fontSize: 10, padding: 0, textDecoration: 'underline' }}
+                        >{draft.showTitle ? 'Hide title' : '+ Title'}</button>
                       </div>
                     </div>
 

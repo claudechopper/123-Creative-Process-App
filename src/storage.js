@@ -30,6 +30,8 @@ export function addDraft({ text, wordCount, projectId = null }) {
     text,
     wordCount,
     projectId,
+    title: '',
+    showTitle: false,
     createdAt: Date.now(),
     unlocksAt: Date.now() + 12 * 60 * 60 * 1000,
     refined: false,

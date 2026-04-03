@@ -24,6 +24,8 @@ export default function RefineMode({ draft, onNavigate }) {
   const [newDraftText, setNewDraftText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [lightMode, setLightMode] = useState(false);
+  const [editingCardTitleId, setEditingCardTitleId] = useState(null);
+  const [editingCardTitleText, setEditingCardTitleText] = useState('');
   const copiedTimeout = useRef(null);
   const editTextareaRef = useRef(null);
   const newDraftFileRef = useRef(null);
@@ -278,8 +280,33 @@ export default function RefineMode({ draft, onNavigate }) {
                       }}>▼</button>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, color: '#5E7A62', marginBottom: 4 }}>
+                      {/* Card title */}
+                      {d.showTitle && (
+                        editingCardTitleId === d.id ? (
+                          <input
+                            autoFocus
+                            value={editingCardTitleText}
+                            onChange={(e) => setEditingCardTitleText(e.target.value)}
+                            onBlur={() => { updateDraft(d.id, { title: editingCardTitleText }); setEditingCardTitleId(null); setRefreshKey(k => k + 1); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { updateDraft(d.id, { title: editingCardTitleText }); setEditingCardTitleId(null); setRefreshKey(k => k + 1); } if (e.key === 'Escape') setEditingCardTitleId(null); }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ fontSize: 14, fontWeight: 700, color: '#2D8B5A', background: 'transparent', border: 'none', borderBottom: '1px solid #2D8B5A', padding: 0, width: '100%', outline: 'none', fontFamily: "'Source Serif 4', serif" }}
+                          />
+                        ) : (
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setEditingCardTitleId(d.id); setEditingCardTitleText(d.title || ''); }}
+                            style={{ fontSize: 14, fontWeight: 700, color: '#2D8B5A', cursor: 'pointer', marginBottom: 3, fontFamily: "'Source Serif 4', serif" }}
+                          >
+                            {d.title || <span style={{ opacity: 0.4, fontStyle: 'italic', fontSize: 11 }}>Click to title...</span>}
+                          </div>
+                        )
+                      )}
+                      <div style={{ fontSize: 11, color: '#5E7A62', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                         {d.wordCount} words · {formatTimestamp(d.createdAt)}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); updateDraft(d.id, { showTitle: !d.showTitle }); setRefreshKey(k => k + 1); }}
+                          style={{ background: 'transparent', border: 'none', color: '#A8B4C4', cursor: 'pointer', fontSize: 9, padding: 0, textDecoration: 'underline' }}
+                        >{d.showTitle ? 'Hide title' : '+ Title'}</button>
                       </div>
                       {isSelected ? (
                         <div style={{
@@ -409,7 +436,7 @@ export default function RefineMode({ draft, onNavigate }) {
           };
           const handleAddSelected = () => {
             selectedImportIds.forEach(id => {
-              if (draft.projectId) moveDraftToProject(id, draft.projectId);
+              moveDraftToProject(id, draft.projectId || null);
             });
             setSelectedImportIds([]);
             setShowImportList(false);
