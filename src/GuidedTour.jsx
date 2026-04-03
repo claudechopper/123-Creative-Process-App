@@ -133,8 +133,9 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   // Navigate to the correct page for this step
   useEffect(() => {
     if (current.page && current.page !== currentPage && onNavigatePage) {
-      // Don't force navigation when we expect the user to leave (leaveRefine)
-      if (current.waitFor === 'leaveRefine') return;
+      // For leaveRefine: only skip if we're already on the target page
+      // (user needs to arrive first before they can leave)
+      if (current.waitFor === 'leaveRefine' && currentPage === current.page) return;
       // Don't force navigation on the final step
       if (current.waitFor === 'finish') return;
       // Don't force navigation on sessionEnd — user is navigating via save modal
