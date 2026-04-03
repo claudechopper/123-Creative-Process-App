@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx vite:*)",
+      "Bash(export PATH=\"/usr/local/bin:$PATH\")",
+      "Bash(/usr/local/bin/npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git remote:*)",
+      "Bash(ls:*)",
+      "Bash(pkill -f \"vite\")",
+      "Read(//Users/Claude/Desktop/twomodes/**)",
+      "Read(//usr/local/bin/**)",
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:123-creative-process-app-123-create-app.up.railway.app)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_Preview__preview_stop",
+      "mcp__Claude_Preview__preview_screenshot",
+      "mcp__Claude_Preview__preview_eval",
+      "mcp__Claude_Preview__preview_snapshot",
+      "mcp__Claude_Preview__preview_click",
+      "mcp__Claude_Preview__preview_inspect",
+      "mcp__Claude_Preview__preview_console_logs",
+      "mcp__Claude_Preview__preview_logs",
+      "mcp__Claude_Preview__preview_network",
+      "mcp__Claude_Preview__preview_fill",
+      "mcp__Claude_Preview__preview_resize"
+    ]
+  }
+}

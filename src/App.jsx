@@ -7,6 +7,7 @@ import RefineMode from './RefineMode';
 import Banner from './Banner';
 import OnboardingPopup, { isTourActive, clearTour } from './OnboardingPopup';
 import GuidedTour from './GuidedTour';
+import { loadDrafts } from './storage';
 
 export default function App() {
   const [mode, setMode] = useState('flow');
@@ -43,6 +44,15 @@ export default function App() {
   };
 
   const handleTourNavigate = (page) => {
+    if (page === 'refine') {
+      // Auto-select first draft for tour
+      const drafts = loadDrafts();
+      if (drafts.length > 0) {
+        setRefineDraft(drafts[0]);
+        setMode('refine');
+      }
+      return;
+    }
     setMode(page);
   };
 

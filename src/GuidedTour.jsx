@@ -57,12 +57,27 @@ const STEPS = [
     page: 'gap',
   },
   {
-    title: '✏️ Sharpen & Edit',
-    body: 'When a draft is ready, click "Ready to Sharpen" to open the side-by-side editor. Your original stays on the left, you edit on the right.',
-    action: 'Click Next to continue.',
+    title: 'Ready to Sharpen',
+    body: 'When a draft is ready, you\'ll see a gold "Ready to Sharpen" button. Click it to enter the side-by-side editor.',
+    action: 'Click Next to see the Sharpen & Edit page.',
     waitFor: 'next',
     page: 'gap',
     highlightText: ['Ready to sharpen'],
+  },
+  {
+    title: '✏️ The Sharpen & Edit Page',
+    body: 'This is where you refine your work. Your original draft stays on the left (read-only). Your sharpened edit is on the right. You can drag cards from left to paste text into the right.',
+    action: 'Look around, then click Next.',
+    waitFor: 'next',
+    page: 'refine',
+  },
+  {
+    title: 'Saving Your Sharpened Work',
+    body: 'When done editing, click "Done & Save to Browser/Account" to save. You can also copy your sharpened text or download it.',
+    action: 'Click Next to finish the tour.',
+    waitFor: 'next',
+    page: 'refine',
+    highlightText: ['Done & Save', 'Copy Sharpened', 'Save Sharpened'],
   },
   {
     title: 'You\'re All Set!',
@@ -202,7 +217,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         {step > 0 && (
-          <button onClick={() => setStep(step - 1)} style={{
+          <button onClick={() => {
+            const prevStep = STEPS[step - 1];
+            if (prevStep && prevStep.page !== current.page && onNavigatePage) {
+              onNavigatePage(prevStep.page);
+            }
+            setStep(step - 1);
+          }} style={{
             padding: '8px 16px', fontSize: 12, fontWeight: 600,
             background: 'transparent', border: '1px solid #D4C4A8',
             borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',

@@ -382,7 +382,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
             }
           }} style={{
             padding: '10px 24px', fontSize: 13, fontWeight: 600,
-            background: 'transparent', color: '#C0392B', border: '1px solid #C0392B',
+            background: 'transparent', color: '#1A1A1A', border: '1px solid #1A1A1A',
             borderRadius: 8, cursor: 'pointer',
           }}>Delete Draft</button>
           <button onClick={startNewSession} style={{

@@ -120,7 +120,7 @@ export default function GapMode({ onNavigate, onRefine }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#E2EBE0', color: '#4A5E48',
+      minHeight: '100vh', background: '#F0E0DE', color: '#5E3A38',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       transition: 'background-color 0.6s ease, color 0.6s ease',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -132,12 +132,13 @@ export default function GapMode({ onNavigate, onRefine }) {
         alignItems: 'center', padding: '20px 0',
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#4A5E48' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
+          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
+        <span style={{ fontSize: 14, color: '#C0392B', fontWeight: 600, marginLeft: -4 }}>Stop</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #B0C8AD',
-            borderRadius: 8, background: 'transparent', color: '#4A5E48', cursor: 'pointer',
+            padding: '6px 12px', fontSize: 11, border: '1px solid #C8A8A6',
+            borderRadius: 8, background: 'transparent', color: '#5E3A38', cursor: 'pointer',
           }}>+ New Session</button>
           {user ? (
             <div style={{
@@ -228,7 +229,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                       disabled={gIdx === 0}
                       style={{
                         background: 'transparent', border: 'none',
-                        color: gIdx === 0 ? '#C8D8C5' : '#4A5E48',
+                        color: gIdx === 0 ? '#D8C8C5' : '#5E4A48',
                         cursor: gIdx === 0 ? 'default' : 'pointer',
                         fontSize: 14, padding: '2px 6px', lineHeight: 1,
                       }}
@@ -239,7 +240,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                       disabled={gIdx === groups.length - 1}
                       style={{
                         background: 'transparent', border: 'none',
-                        color: gIdx === groups.length - 1 ? '#C8D8C5' : '#4A5E48',
+                        color: gIdx === groups.length - 1 ? '#D8C8C5' : '#5E4A48',
                         cursor: gIdx === groups.length - 1 ? 'default' : 'pointer',
                         fontSize: 14, padding: '2px 6px', lineHeight: 1,
                       }}
@@ -247,7 +248,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                   </div>
                 )}
 
-                <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 12, color: '#6B8B68' }}>
+                <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 12, color: '#8B6B68' }}>
                   {isExpanded ? '▾' : '▸'}
                 </span>
 
@@ -260,7 +261,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                     onBlur={saveProjectName}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveProjectName(); if (e.key === 'Escape') setEditingProjectId(null); }}
                     style={{
-                      fontSize: 26, fontWeight: 700, color: '#3A4E38',
+                      fontSize: 26, fontWeight: 700, color: '#4E3A38',
                       background: 'transparent', border: 'none', borderBottom: '2px solid #D4943A',
                       padding: '2px 4px', fontFamily: "'Source Serif 4', serif",
                       outline: 'none', width: '100%', maxWidth: 400,
@@ -270,20 +271,20 @@ export default function GapMode({ onNavigate, onRefine }) {
                   <span
                     onClick={() => startEditing(group.project)}
                     style={{
-                      fontSize: 26, fontWeight: 700, color: '#3A4E38',
+                      fontSize: 26, fontWeight: 700, color: '#4E3A38',
                       cursor: group.project.id === 'uncategorized' ? 'default' : 'pointer',
                       fontFamily: "'Source Serif 4', serif",
                       borderBottom: group.project.id === 'uncategorized' ? 'none' : '2px solid transparent',
                       transition: 'border-color 0.2s',
                     }}
-                    onMouseEnter={(e) => { if (group.project.id !== 'uncategorized') e.target.style.borderBottom = '2px dashed #B0C8AD'; }}
+                    onMouseEnter={(e) => { if (group.project.id !== 'uncategorized') e.target.style.borderBottom = '2px dashed #C8B0AD'; }}
                     onMouseLeave={(e) => { e.target.style.borderBottom = '2px solid transparent'; }}
                   >
                     {group.project.name}
                   </span>
                 )}
 
-                <span style={{ fontSize: 13, color: '#7B9478', fontWeight: 400 }}>({group.drafts.length})</span>
+                <span style={{ fontSize: 13, color: '#94787B', fontWeight: 400 }}>({group.drafts.length})</span>
               </div>
 
               {/* Draft cards */}
@@ -293,7 +294,7 @@ export default function GapMode({ onNavigate, onRefine }) {
 
                 return (
                   <div key={draft.id} style={{
-                    background: isReady ? '#EDF5EB' : '#D8E5D5',
+                    background: isReady ? '#F5EDEB' : '#E5D8D5',
                     borderRadius: 12, padding: '16px 20px', marginBottom: 8,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     opacity: isReady ? 1 : 0.7,
@@ -301,10 +302,10 @@ export default function GapMode({ onNavigate, onRefine }) {
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize: 14, fontWeight: 600, color: isReady ? '#3A4E38' : '#4A5E48',
+                        fontSize: 14, fontWeight: 600, color: isReady ? '#4E3A38' : '#5E4A48',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>{getTitle(draft.text)}</div>
-                      <div style={{ fontSize: 11, color: '#7B9478', marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: '#94787B', marginTop: 4 }}>
                         {draft.wordCount} words · {new Date(draft.createdAt).toLocaleDateString()}
                         {draft.refined && ' · Sharpened ✓'}
                       </div>
@@ -320,14 +321,14 @@ export default function GapMode({ onNavigate, onRefine }) {
                         }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 12, color: '#6B8B68', fontFamily: "'Space Mono', monospace" }}>
+                          <span style={{ fontSize: 12, color: '#8B6B68', fontFamily: "'Space Mono', monospace" }}>
                             ⏳ {formatRemaining(remaining)}
                           </span>
                         </div>
                       )}
                       <button onClick={() => handleDelete(draft.id)} style={{
                         padding: '4px 8px', fontSize: 12, background: 'transparent',
-                        border: 'none', color: '#9BB898', cursor: 'pointer',
+                        border: 'none', color: '#B89B98', cursor: 'pointer',
                       }}>×</button>
                     </div>
                   </div>
