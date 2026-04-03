@@ -20,6 +20,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
   const [sessionActive, setSessionActive] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTimeUp, setShowTimeUp] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const lastLengthRef = useRef(0);
@@ -48,6 +49,21 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
     }
   }, [text, onNavigate]);
 
+  const handleTimerEnd = useCallback(() => {
+    clearInterval(timerRef.current);
+    setShowTimeUp(true);
+  }, []);
+
+  const addMoreTime = (minutes) => {
+    setShowTimeUp(false);
+    setSecondsLeft(minutes * 60);
+  };
+
+  const finishSession = () => {
+    setShowTimeUp(false);
+    showSave();
+  };
+
   const saveAndClose = (projectId) => {
     addDraft({ text: text.trim(), wordCount, projectId });
     setShowSaveModal(false);
@@ -73,7 +89,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
 
   useEffect(() => {
     if (secondsLeft === null) return;
-    if (secondsLeft <= 0) { showSave(); return; }
+    if (secondsLeft <= 0) { handleTimerEnd(); return; }
     timerRef.current = setInterval(() => {
       setSecondsLeft(s => {
         if (s <= 1) { clearInterval(timerRef.current); return 0; }
@@ -81,7 +97,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [secondsLeft === null, showSave]);
+  }, [secondsLeft === null, handleTimerEnd]);
 
   const handleKeyDown = (e) => {
     if (strictMode && (e.key === 'Backspace' || e.key === 'Delete')) e.preventDefault();
@@ -371,7 +387,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
             background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
             textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-          }}>End Session & Save to Browser</button>
+          }}>Finish Session & Save to Browser</button>
           <button onClick={() => {
             if (confirm('Delete this draft? The text will be lost.')) {
               clearInterval(timerRef.current);
@@ -488,6 +504,50 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
                   borderRadius: 8, cursor: 'pointer',
                 }}>Create & Save</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time's up modal */}
+      {showTimeUp && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+        }}>
+          <div style={{
+            background: '#FDF6EC', borderRadius: 16, padding: 28, maxWidth: 400, width: '90%',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          }}>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#5C4A32', marginBottom: 8, textAlign: 'center' }}>
+              ⏰ Time's Up!
+            </h3>
+            <p style={{ fontSize: 13, color: '#8B7B6B', marginBottom: 20, textAlign: 'center', lineHeight: 1.5 }}>
+              Need more time to keep drafting, or are you done?
+            </p>
+            <button onClick={finishSession} style={{
+              width: '100%', padding: '12px', fontSize: 14, fontWeight: 600,
+              background: '#D4943A', color: '#FFF', border: 'none',
+              borderRadius: 10, cursor: 'pointer', marginBottom: 12,
+              textShadow: '0 0 10px rgba(212,148,58,0.5)',
+            }}>Draft Done — Finish Session</button>
+            <div style={{ fontSize: 12, color: '#8B7B6B', textAlign: 'center', marginBottom: 10, fontWeight: 600 }}>
+              Or add more time:
+            </div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+            }}>
+              {TIMER_OPTIONS.map(m => (
+                <button key={m} onClick={() => addMoreTime(m)} style={{
+                  padding: '10px 6px', fontSize: 12, fontWeight: 600,
+                  background: '#F5EDD8', border: '2px solid transparent',
+                  borderRadius: 8, cursor: 'pointer', color: '#5C4A32',
+                  transition: 'border-color 0.15s ease',
+                }}
+                onMouseEnter={e => e.target.style.borderColor = '#A8B4C4'}
+                onMouseLeave={e => e.target.style.borderColor = 'transparent'}
+                >{formatTimerLabel(m)}</button>
+              ))}
             </div>
           </div>
         </div>

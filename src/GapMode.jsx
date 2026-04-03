@@ -261,7 +261,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                     <button onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); e.preventDefault(); moveProject(group.project.id, 1); }} disabled={gIdx === groups.length - 1} style={{ background: 'transparent', border: 'none', color: gIdx === groups.length - 1 ? '#D8C8C5' : '#5E4A48', cursor: gIdx === groups.length - 1 ? 'default' : 'pointer', fontSize: 14, padding: '2px 6px', lineHeight: 1 }}>▼</button>
                   </div>
                 )}
-                <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 12, color: '#8B6B68' }}>{isExpanded ? '▾' : '▸'}</span>
+                <span onClick={() => toggleProject(group.project.id)} style={{ cursor: 'pointer', fontSize: 36, color: '#8B6B68', lineHeight: 0.7 }}>{isExpanded ? '▾' : '▸'}</span>
                 {editingProjectId === group.project.id ? (
                   <input autoFocus value={editingName} onChange={(e) => setEditingName(e.target.value)} onBlur={saveProjectName} onKeyDown={(e) => { if (e.key === 'Enter') saveProjectName(); if (e.key === 'Escape') setEditingProjectId(null); }} style={{ fontSize: 26, fontWeight: 700, color: '#4E3A38', background: 'transparent', border: 'none', borderBottom: '2px solid #D4943A', padding: '2px 4px', fontFamily: "'Source Serif 4', serif", outline: 'none', width: '100%', maxWidth: 400 }} />
                 ) : (

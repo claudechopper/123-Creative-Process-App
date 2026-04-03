@@ -20,9 +20,9 @@ const STEPS = [
   },
   {
     title: 'Start Writing!',
-    body: 'This is your writing space. In "Strict" mode, you can\'t delete — just write forward. Type a few sentences now.',
-    action: 'Type anything — keep moving forward.',
-    waitFor: 'hasText',
+    body: 'This is your writing space. In "Strict" mode, you can\'t delete — just write forward. Try typing a few sentences, or click Next to skip ahead.',
+    action: 'Type anything or click Next.',
+    waitFor: 'next',
     page: 'flow',
   },
   {
@@ -35,20 +35,28 @@ const STEPS = [
   },
   {
     title: '💡 Draft Tips',
-    body: 'Stuck? The Draft Tips button gives you creative prompts you can insert directly into your text.',
+    body: 'Stuck? The Draft Tips button gives you category-specific creative prompts you can insert directly into your text.',
     action: 'Click Next to continue.',
     waitFor: 'next',
     page: 'flow',
     highlightText: ['Draft Tips'],
   },
   {
-    title: 'End Your Session',
-    body: 'When you\'re done, click "End Session & Save to Browser" to save. Your draft enters a 12-hour rest period on the Stop & Incubate page.',
-    action: 'Click "End Session & Save to Browser" when ready, or Next to skip ahead.',
+    title: 'Finish Your Session',
+    body: 'When you\'re done, click "Finish Session & Save to Browser" to save your draft. It will then enter a 12-hour incubation period on the Stop & Incubate page.',
+    action: 'Click the button when ready, or Next to skip ahead.',
     waitFor: 'next',
     page: 'flow',
-    highlightText: ['End Session'],
+    highlightText: ['Finish Session'],
     position: 'center',
+  },
+  {
+    title: 'Save Your Draft',
+    body: 'After finishing, you\'ll see this save dialog. Choose to save as a new draft, save to a project, or create a new project for it.',
+    action: 'Click Next to continue to the Stop/Drafts page.',
+    waitFor: 'next',
+    page: 'flow',
+    highlightText: ['Save as New'],
   },
   {
     title: '🌙 The Stop/Drafts Page',
@@ -59,11 +67,11 @@ const STEPS = [
   },
   {
     title: '⏳ The 12-Hour Incubation',
-    body: 'Research shows that sleeping on your work — or even just taking a break — dramatically improves your ability to edit critically. Your brain literally uses different neural pathways for creation vs. critique. That\'s why we suggest a 12-hour incubation period. When the timer finishes, you\'ll see a gold "Ready to Sharpen" button.',
+    body: 'Research shows sleeping on your work dramatically improves your editing ability. Your brain uses different neural pathways for creation vs. critique. That\'s why we suggest a 12-hour incubation. You CAN override this with the silver "Override" button if you need to, but we don\'t recommend it — your sharpening will be better after rest.',
     action: 'Click Next to see the Sharpen & Edit page.',
     waitFor: 'next',
     page: 'gap',
-    highlightText: ['Ready to sharpen'],
+    highlightText: ['Ready to sharpen', 'Override'],
   },
   {
     title: '✏️ The Sharpen & Edit Page',
@@ -74,11 +82,11 @@ const STEPS = [
   },
   {
     title: 'Saving Your Sharpened Work',
-    body: 'When done editing, click "Done & Save to Browser/Account" to save. OR just hit "← Back to Drafts" and it will also automatically save to your browser. You can also copy your sharpened text or download it to your computer for extra safe keeping.',
+    body: 'When done editing, click "Finish & Save to Browser/Account" to save. OR just hit "← Back to Drafts" and it will also automatically save to your browser. You can also copy your sharpened text or download it to your computer for extra safe keeping.',
     action: 'Click Next to finish the tour.',
     waitFor: 'next',
     page: 'refine',
-    highlightText: ['Done & Save', 'Copy Sharpened', 'Save Sharpened', 'Back to Drafts'],
+    highlightText: ['Finish & Save', 'Copy Sharpened', 'Save Sharpened', 'Back to Drafts'],
   },
   {
     title: 'You\'re All Set!',
@@ -89,7 +97,7 @@ const STEPS = [
   },
 ];
 
-export default function GuidedTour({ sessionActive, hasText, showTimePicker, currentPage, onNavigatePage, onEnd }) {
+export default function GuidedTour({ sessionActive, hasText, showTimePicker, showSaveModal, currentPage, onNavigatePage, onEnd }) {
   const [step, setStep] = useState(0);
   const highlightIntervalRef = useRef(null);
 
@@ -105,16 +113,12 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
   // Highlight target elements
   useEffect(() => {
     const addPulse = () => {
-      // Remove old pulses
       document.querySelectorAll('.tour-pulse').forEach(el => {
         el.classList.remove('tour-pulse');
         el.style.removeProperty('animation');
         el.style.removeProperty('box-shadow');
       });
-
       if (!current.highlightText) return;
-
-      // Find and highlight matching elements
       const allButtons = document.querySelectorAll('button, a');
       allButtons.forEach(btn => {
         const text = btn.textContent || '';
@@ -127,11 +131,8 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
         }
       });
     };
-
-    // Initial highlight + periodic refresh (elements may mount later)
     addPulse();
     highlightIntervalRef.current = setInterval(addPulse, 500);
-
     return () => {
       clearInterval(highlightIntervalRef.current);
       document.querySelectorAll('.tour-pulse').forEach(el => {
@@ -152,25 +153,12 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
     if (current.waitFor === 'sessionStart' && sessionActive) setStep(s => s + 1);
   }, [sessionActive, current.waitFor]);
 
-  useEffect(() => {
-    if (current.waitFor === 'hasText' && hasText) {
-      setTimeout(() => setStep(s => s + 1), 1500);
-    }
-  }, [hasText, current.waitFor]);
-
   const handleNext = () => {
-    if (current.waitFor === 'finish') {
-      clearTour();
-      onEnd();
-      return;
-    }
+    if (current.waitFor === 'finish') { clearTour(); onEnd(); return; }
     if (step < STEPS.length - 1) setStep(step + 1);
   };
 
-  const handleSkip = () => {
-    clearTour();
-    onEnd();
-  };
+  const handleSkip = () => { clearTour(); onEnd(); };
 
   const isCentered = current.position === 'center';
 
@@ -182,13 +170,8 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
       background: '#FDF6EC', borderRadius: 16, padding: '20px 24px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 2px #D4943A',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      animation: 'tourSlideUp 0.3s ease-out',
     }}>
       <style>{`
-        @keyframes tourSlideUp {
-          from { transform: translateX(-50%) translateY(20px); opacity: 0; }
-          to { transform: translateX(-50%) translateY(0); opacity: 1; }
-        }
         @keyframes tourPulse {
           0%, 100% { box-shadow: 0 0 0 3px #D4943A, 0 0 20px rgba(212,148,58,0.6), 0 0 40px rgba(212,148,58,0.3); }
           50% { box-shadow: 0 0 0 6px #D4943A, 0 0 30px rgba(212,148,58,0.8), 0 0 60px rgba(212,148,58,0.5); }
@@ -206,16 +189,10 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
       </div>
 
       <div style={{ height: 3, background: '#EDE5D4', borderRadius: 2, marginBottom: 14 }}>
-        <div style={{
-          height: '100%', background: '#D4943A', borderRadius: 2,
-          width: `${((step + 1) / STEPS.length) * 100}%`,
-          transition: 'width 0.3s ease',
-        }} />
+        <div style={{ height: '100%', background: '#D4943A', borderRadius: 2, width: `${((step + 1) / STEPS.length) * 100}%`, transition: 'width 0.3s ease' }} />
       </div>
 
-      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6, fontFamily: "'Source Serif 4', serif" }}>
-        {current.title}
-      </h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6, fontFamily: "'Source Serif 4', serif" }}>{current.title}</h3>
       <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>{current.body}</p>
       <p style={{ fontSize: 12, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>👉 {current.action}</p>
 
@@ -223,9 +200,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
         {step > 0 && (
           <button onClick={() => {
             const prevStep = STEPS[step - 1];
-            if (prevStep && prevStep.page !== current.page && onNavigatePage) {
-              onNavigatePage(prevStep.page);
-            }
+            if (prevStep && prevStep.page !== current.page && onNavigatePage) onNavigatePage(prevStep.page);
             setStep(step - 1);
           }} style={{
             padding: '8px 16px', fontSize: 12, fontWeight: 600,
@@ -238,7 +213,6 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
             padding: '8px 20px', fontSize: 12, fontWeight: 700,
             background: '#D4943A', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
-            textShadow: '0 0 10px rgba(212,148,58,0.5)',
           }}>{current.waitFor === 'finish' ? 'Finish Tour ✓' : 'Next →'}</button>
         )}
       </div>

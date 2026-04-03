@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft } from './storage';
+import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject } from './storage';
 import TipsPanel from './TipsPanel';
 
 export default function RefineMode({ draft, onNavigate }) {
@@ -19,6 +19,7 @@ export default function RefineMode({ draft, onNavigate }) {
   const [dragOverId, setDragOverId] = useState(null);
   const [showNewDraft, setShowNewDraft] = useState(false);
   const [showDraftWarning, setShowDraftWarning] = useState(false);
+  const [showImportList, setShowImportList] = useState(false);
   const [newDraftText, setNewDraftText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const copiedTimeout = useRef(null);
@@ -172,7 +173,7 @@ export default function RefineMode({ draft, onNavigate }) {
             border: 'none', borderRadius: 8, background: '#A8B4C4',
             color: '#FFF', cursor: 'pointer',
             textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-          }}>Done & Save to Browser/Account ✓</button>
+          }}>Finish & Save to Browser/Account ✓</button>
         </div>
       </div>
 
@@ -351,13 +352,18 @@ export default function RefineMode({ draft, onNavigate }) {
             }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: '#E8EDF2', marginBottom: 10 }}>Heads up!</h3>
               <p style={{ fontSize: 13, color: '#C8D4BC', lineHeight: 1.6, marginBottom: 18 }}>
-                It's generally better not to mix writing new drafts with sharpening and editing your final product — they use different mental modes. But we've made it possible if you'd still like to add a new draft here.
+                It's generally better not to mix writing new drafts with sharpening and editing your final product — they use different mental modes. But we've made it possible if you'd still like to.
               </p>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button onClick={() => setShowDraftWarning(false)} style={{
                   padding: '8px 16px', fontSize: 12, background: 'transparent',
                   border: '1px solid #2A3D30', borderRadius: 8, color: '#7A9A80', cursor: 'pointer',
                 }}>Cancel</button>
+                <button onClick={() => { setShowDraftWarning(false); setShowImportList(true); }} style={{
+                  padding: '8px 16px', fontSize: 12, fontWeight: 600,
+                  background: '#A8B4C4', color: '#FFF', border: 'none',
+                  borderRadius: 8, cursor: 'pointer',
+                }}>Import from Draft List</button>
                 <button onClick={() => { setShowDraftWarning(false); setShowNewDraft(true); }} style={{
                   padding: '8px 16px', fontSize: 12, fontWeight: 600,
                   background: '#D4943A', color: '#FFF', border: 'none',
@@ -368,13 +374,66 @@ export default function RefineMode({ draft, onNavigate }) {
           </div>
         )}
 
+        {/* Import draft from list modal */}
+        {showImportList && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
+          }} onClick={(e) => { if (e.target === e.currentTarget) setShowImportList(false); }}>
+            <div style={{
+              background: '#1A2B22', borderRadius: 16, padding: 28, maxWidth: 480, width: '90%',
+              maxHeight: '70vh', overflowY: 'auto',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #2A3D30',
+            }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#E8EDF2', marginBottom: 14 }}>Import Draft Card</h3>
+              <p style={{ fontSize: 12, color: '#7A9A80', marginBottom: 14 }}>Select one or more drafts to add to this project's Original column:</p>
+              {loadDrafts().filter(d => !projectDrafts.find(pd => pd.id === d.id)).map(d => (
+                <div key={d.id} style={{
+                  background: '#14201A', borderRadius: 8, padding: '12px 14px', marginBottom: 8,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  border: '1px solid #2A3D30',
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: '#C0C8D4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {d.text.slice(0, 60).replace(/\n/g, ' ')}{d.text.length > 60 ? '...' : ''}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#5E7A62', marginTop: 4 }}>{d.wordCount} words · {new Date(d.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  <button onClick={() => {
+                    if (draft.projectId) {
+                      moveDraftToProject(d.id, draft.projectId);
+                    }
+                    setShowImportList(false);
+                    setRefreshKey(k => k + 1);
+                  }} style={{
+                    padding: '6px 12px', fontSize: 11, fontWeight: 600, marginLeft: 8,
+                    background: '#D4943A', color: '#FFF', border: 'none',
+                    borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}>Add →</button>
+                </div>
+              ))}
+              {loadDrafts().filter(d => !projectDrafts.find(pd => pd.id === d.id)).length === 0 && (
+                <p style={{ fontSize: 13, color: '#7A9A80', textAlign: 'center', padding: 20 }}>No other drafts available to import.</p>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <button onClick={() => setShowImportList(false)} style={{
+                  padding: '8px 16px', fontSize: 12, background: 'transparent',
+                  border: '1px solid #2A3D30', borderRadius: 8, color: '#7A9A80', cursor: 'pointer',
+                }}>Done</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Editable — shimmering gold text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ textAlign: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: '#7A9A80', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700 }}>Final</span>
+          </div>
           <div style={{
-            background: '#1E3028', padding: '8px 14px 10px', borderRadius: '10px 10px 0 0',
+            background: '#1E3028', padding: '10px 14px', borderRadius: '10px 10px 0 0',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: 10, color: '#7A9A80', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 2, fontWeight: 600 }}>Final</div>
             <div style={{
               fontSize: 16, fontWeight: 700, letterSpacing: '0.5px',
               color: '#E2B44A',

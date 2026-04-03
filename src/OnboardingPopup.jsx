@@ -70,7 +70,7 @@ export default function OnboardingPopup({ onStartTour }) {
             Your first draft should be a stream of consciousness — raw, unfiltered,
             forward-moving. Get it all out. Then{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>Sharpen and Edit</span> later,
-            after letting it incubate.
+            after letting it <span style={{ color: '#C0392B', fontWeight: 600 }}>incubate</span>.
           </p>
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
@@ -88,18 +88,21 @@ export default function OnboardingPopup({ onStartTour }) {
             two completely different frames of mind, and the best artists know how to
             separate them.{' '}
             <strong><em>The whole point is getting words out before your inner critic shows up.</em></strong>
-            {' '}<strong style={{ color: '#D4943A' }}>THEN later Sharpening and Refining, after a period of rest.</strong>
+            {' '}<strong style={{ color: '#D4943A' }}>THEN later Sharpening and Refining,</strong>{' '}
+            <strong style={{ color: '#1A1A1A' }}>after a period of rest.</strong>
           </p>
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 18 }}>
             Also, studies in <em>Frontiers in Human Neuroscience</em> show that your brain
-            continues solving problems during rest, subconsciously — subjects who slept on
-            a problem were <strong>3x more likely</strong> to discover the solution. Your best
-            ideas don't come while staring at the screen. They come after you step away and
-            sleep on it.{' '}
-            <strong><em>What's more, your brain uses entirely different circuitry to create than
-            it does to critique — these two modes fight each other when forced together.</em></strong>
-            {' '}So we've simplified the steps for you.
+            continues solving problems during{' '}
+            <span style={{ color: '#C0392B', fontWeight: 600 }}>rest</span>, subconsciously.
+            Subjects who slept on a problem were <strong>3x more likely</strong> to discover
+            the solution. Your best ideas don't come while staring at the screen. They come
+            after you step away and sleep on it.{' '}
+            <strong><em>What's more, your brain uses entirely different circuitry to{' '}
+            <span style={silverShimmer}>create</span> than
+            it does to <span style={{ color: '#D4943A' }}>critique</span> — these two modes fight each other when forced together.</em></strong>
+            {' '}So we've simplified the steps to make it easy and seamless for you.
           </p>
 
           <div style={{
@@ -109,7 +112,7 @@ export default function OnboardingPopup({ onStartTour }) {
           {[
             { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write/Create/Brainstorm forward without editing. Build momentum.', color: '#A8B4C4' },
             { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#C0392B' },
-            { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Cut, shape, polish.', color: '#D4943A' },
+            { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Edit, cut, shape, and polish.', color: '#D4943A' },
           ].map(step => (
             <div key={step.num} style={{
               display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10,
@@ -191,10 +194,10 @@ export default function OnboardingPopup({ onStartTour }) {
           {[
             { name: '"Strict" / "Gentle"', desc: '"Strict" blocks backspace entirely. "Gentle" allows it.', color: '#1A1A1A' },
             { name: 'Start Session', desc: 'Pick your time, then write until the timer ends.', color: '#1A1A1A' },
-            { name: 'End Session & Save', desc: 'This saves your draft to the browser (or your account if you\'re signed in) and starts the 12-hour stop period.', color: '#1A1A1A' },
-            { name: 'Stop/Drafts', desc: 'View all your resting and ready drafts.', color: '#A8B4C4', shimmer: true },
-            { name: 'Ready to Sharpen', desc: 'Opens side-by-side editing when the stop period is over.', color: '#A8B4C4', shimmer: true },
-            { name: 'Hints & Tips', desc: 'Creative techniques to help you write and edit.', color: '#A8B4C4', shimmer: true },
+            { name: 'Finish Session & Save', desc: 'This saves your draft to the browser (or your account if you\'re signed in) and starts the 12-hour stop period.', color: '#1A1A1A' },
+            { name: 'Stop/Drafts', desc: 'View all your resting and ready drafts.', color: '#1A1A1A' },
+            { name: 'Ready to Sharpen', desc: 'Opens side-by-side editing when the stop period is over.', color: '#1A1A1A' },
+            { name: 'Hints & Tips', desc: 'Creative techniques to help you write and edit.', color: '#1A1A1A' },
           ].map(item => (
             <div key={item.name} style={{
               display: 'flex', gap: 8, marginBottom: 8, fontSize: 13,
