@@ -54,7 +54,7 @@ const STEPS = [
     title: 'Save Your Draft',
     body: 'Choose to save as a new draft, save to a project, or create a new project for it.',
     action: 'Save your draft, or click Next to continue.',
-    waitFor: 'savedDraft',
+    waitFor: 'next',
     page: 'flow',
     highlightText: ['Save as New'],
   },
@@ -171,6 +171,16 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       setStep(s => s + 1);
     }
   }, [showSaveModal, current.waitFor, currentPage]);
+
+  // Auto-advance: page changed and matches next step's page
+  useEffect(() => {
+    if (step < STEPS.length - 1) {
+      const nextStep = STEPS[step + 1];
+      if (current.page !== currentPage && nextStep.page === currentPage) {
+        setStep(s => s + 1);
+      }
+    }
+  }, [currentPage, step, current.page]);
 
   // Track previous step for auto-advance logic
   useEffect(() => {

@@ -6,7 +6,7 @@ export default function RefineMode({ draft, onNavigate }) {
   const [localDraftOrder, setLocalDraftOrder] = useState(null);
   const projectDraftsRaw = draft.projectId
     ? getDraftsByProject(draft.projectId)
-    : [draft];
+    : loadDrafts().filter(d => !d.projectId);
   const projectDrafts = localDraftOrder
     ? localDraftOrder.map(id => projectDraftsRaw.find(d => d.id === id)).filter(Boolean)
     : projectDraftsRaw;
@@ -23,9 +23,30 @@ export default function RefineMode({ draft, onNavigate }) {
   const [selectedImportIds, setSelectedImportIds] = useState([]);
   const [newDraftText, setNewDraftText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lightMode, setLightMode] = useState(false);
   const copiedTimeout = useRef(null);
   const editTextareaRef = useRef(null);
   const newDraftFileRef = useRef(null);
+
+  // Theme
+  const t = lightMode ? {
+    bg: '#FDF6EC', text: '#5C4A32', panel: '#F5EDD8', panelBorder: '#EDE5D4',
+    header: '#EDE5D4', headerText: '#5C4A32', mutedText: '#8B7B6B',
+    originalBg: '#F5EDD8', originalText: '#5C4A32', originalHeader: '#EDE5D4',
+    editBg: '#FDF6EC', editText: '#8B6B20', editCaret: '#A08030',
+    statBg: '#F5EDD8', statBorder: '#EDE5D4', statLabel: '#8B7B6B',
+    borderColor: '#D4C4A8', btnBg: '#F5EDD8', btnText: '#5C4A32',
+    topBorder: '#EDE5D4',
+  } : {
+    bg: '#14201A', text: '#E8EDF2', panel: '#1A2B22', panelBorder: '#2A3D30',
+    header: '#1E3028', headerText: '#E8EDF2', mutedText: '#7A9A80',
+    originalBg: 'linear-gradient(180deg, #1E2C38 0%, #1A2630 100%)', originalText: '#C0C8D4',
+    originalHeader: 'linear-gradient(135deg, #2A3644 0%, #344050 50%, #2A3644 100%)',
+    editBg: '#1A2B22', editText: '#E2B44A', editCaret: '#F0D080',
+    statBg: '#1A2B22', statBorder: '#2A3D30', statLabel: '#5E7A62',
+    borderColor: '#2A3D30', btnBg: '#2A3D30', btnText: '#7A9A80',
+    topBorder: '#2A3D30',
+  };
 
   const selectedOriginal = projectDrafts.find(d => d.id === selectedOriginalId) || draft;
   const originalWords = selectedOriginal.text.trim().split(/\s+/).length;
@@ -141,7 +162,7 @@ export default function RefineMode({ draft, onNavigate }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#14201A', color: '#E8EDF2',
+      minHeight: '100vh', background: t.bg, color: t.text,
       display: 'flex', flexDirection: 'column',
       transition: 'background-color 0.6s ease, color 0.6s ease',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -149,7 +170,7 @@ export default function RefineMode({ draft, onNavigate }) {
       {/* Top bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 24px', borderBottom: '1px solid #2A3D30',
+        padding: '16px 24px', borderBottom: `1px solid ${t.topBorder}`,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
@@ -158,16 +179,20 @@ export default function RefineMode({ draft, onNavigate }) {
           <span style={{ fontSize: 14, color: '#7A9A80' }}><span style={{ color: '#D4943A' }}>Sharpen</span> & Edit</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setLightMode(!lightMode)} style={{
+            padding: '6px 12px', fontSize: 11, border: `1px solid ${t.borderColor}`,
+            borderRadius: 8, background: 'transparent', color: t.mutedText, cursor: 'pointer',
+          }}>{lightMode ? '🌙 Dark' : '☀️ Light'}</button>
           <button onClick={() => setShowTips(true)} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
-            borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
+            padding: '6px 12px', fontSize: 11, border: `1px solid ${t.borderColor}`,
+            borderRadius: 8, background: 'transparent', color: t.mutedText, cursor: 'pointer',
           }}>💡 Edit Tips</button>
           <button onClick={() => {
             updateDraft(draft.id, { refinedText: editedText });
             onNavigate('gap');
           }} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
-            borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
+            padding: '6px 12px', fontSize: 11, border: `1px solid ${t.borderColor}`,
+            borderRadius: 8, background: 'transparent', color: t.mutedText, cursor: 'pointer',
           }}>← Back to Drafts</button>
           <button onClick={handleDone} style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600,
@@ -187,11 +212,11 @@ export default function RefineMode({ draft, onNavigate }) {
           { label: 'Current Word Count', value: currentWords, color: '#E2B44A', glow: true },
         ].map(stat => (
           <div key={stat.label} style={{
-            background: '#1A2B22', border: '1px solid #2A3D30', borderRadius: 10,
+            background: t.statBg, border: `1px solid ${t.statBorder}`, borderRadius: 10,
             padding: '10px 16px', minWidth: 120, textAlign: 'center',
           }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: stat.color, textShadow: stat.glow ? '0 0 10px rgba(212,148,58,0.5), 0 0 24px rgba(212,148,58,0.2)' : '0 0 10px rgba(168,180,196,0.4), 0 0 20px rgba(168,180,196,0.15)' }}>{stat.value}</div>
-            <div style={{ fontSize: 10, color: '#5E7A62', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>{stat.label}</div>
+            <div style={{ fontSize: 10, color: t.statLabel, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -470,7 +495,7 @@ export default function RefineMode({ draft, onNavigate }) {
             <span style={{ fontSize: 11, color: '#7A9A80', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700 }}>Final</span>
           </div>
           <div style={{
-            background: '#1E3028', padding: '10px 14px', borderRadius: '10px 10px 0 0',
+            background: t.header, padding: '10px 14px', borderRadius: '10px 10px 0 0',
             textAlign: 'center',
           }}>
             <div style={{
@@ -502,11 +527,11 @@ export default function RefineMode({ draft, onNavigate }) {
               setDragOverId(null);
             }}
             style={{
-              flex: 1, background: '#1A2B22', borderRadius: '0 0 10px 10px',
+              flex: 1, background: t.editBg, borderRadius: '0 0 10px 10px',
               padding: 16, border: 'none', fontSize: 15, lineHeight: 1.8,
-              fontFamily: "'Source Serif 4', serif", color: '#E2B44A',
+              fontFamily: "'Source Serif 4', serif", color: t.editText,
               resize: 'none', minHeight: 300,
-              caretColor: '#F0D080',
+              caretColor: t.editCaret,
               textShadow: '0 0 8px rgba(212,148,58,0.4), 0 0 20px rgba(212,148,58,0.15)',
             }}
           />

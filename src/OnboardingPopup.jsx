@@ -110,8 +110,8 @@ export default function OnboardingPopup({ onStartTour }) {
           }}><span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span> <span style={{ color: '#D4943A' }}>& Sharpen</span> follows this proven process:</div>
 
           {[
-            { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write/Create/Brainstorm forward without editing. Build momentum.', color: '#A8B4C4' },
-            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work.', color: '#C0392B' },
+            { num: '1', stage: 'DRAFT:', label: 'Flow', desc: 'Write/Create/Brainstorm forward without editing or judging at all. Build momentum.', color: '#A8B4C4' },
+            { num: '2', stage: 'STOP:', label: 'The Gap', desc: 'Step away. Let your subconscious work. And allow your frame of mind to change.', color: '#C0392B' },
             { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Edit, cut, shape, and polish.', color: '#D4943A' },
           ].map(step => (
             <div key={step.num} style={{
@@ -182,35 +182,6 @@ export default function OnboardingPopup({ onStartTour }) {
           }}>Take the Tour</button>
         </div>
 
-        {/* Section B: How This Site Works */}
-        <div style={{
-          background: '#F5EDD8', borderRadius: 14, padding: '22px 24px',
-        }}>
-          <h2 style={{
-            fontSize: 24, fontWeight: 700, color: '#5A8F6A', margin: 0, marginBottom: 14,
-            fontFamily: "'Source Serif 4', serif",
-          }}>How This Site Works:</h2>
-
-          {[
-            { name: '"Strict" / "Gentle"', desc: '"Strict" blocks backspace entirely. "Gentle" allows it.', color: '#1A1A1A' },
-            { name: 'Start Session', desc: 'Pick your time, then write until the timer ends.', color: '#1A1A1A' },
-            { name: 'Finish Session & Save', desc: 'This saves your draft to the browser (or your account if you\'re signed in) and starts the 12-hour stop period.', color: '#1A1A1A' },
-            { name: 'Drafts/Stop', desc: 'View all your resting and ready drafts.', color: '#1A1A1A' },
-            { name: 'Ready to Sharpen', desc: 'Opens side-by-side editing when the stop period is over.', color: '#1A1A1A' },
-            { name: 'Hints & Tips', desc: 'Creative techniques to help you write and edit.', color: '#1A1A1A' },
-          ].map(item => (
-            <div key={item.name} style={{
-              display: 'flex', gap: 8, marginBottom: 8, fontSize: 13,
-              lineHeight: 1.5,
-            }}>
-              <span style={{
-                fontWeight: 700, color: item.color, whiteSpace: 'nowrap',
-                ...(item.shimmer ? { textShadow: silverShimmer.textShadow } : {}),
-              }}>{item.name}</span>
-              <span style={{ color: '#6B5D4A' }}>— {item.desc}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
