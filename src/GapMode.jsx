@@ -386,10 +386,11 @@ export default function GapMode({ onNavigate, onRefine }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12, flexShrink: 0 }}>
                       {isReady ? (
                         <button onClick={() => onRefine(draft)} style={{
-                          padding: '8px 16px', fontSize: 12, fontWeight: 600,
-                          background: '#D4943A', color: '#1A5C2A', border: 'none',
+                          padding: '8px 16px', fontSize: 12, fontWeight: 700,
+                          background: 'transparent', color: '#1A8C3A',
+                          border: '2px solid #D4943A',
                           borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                          boxShadow: '0 2px 8px rgba(212,148,58,0.3)',
+                          boxShadow: '0 0 12px rgba(212,148,58,0.4), 0 0 24px rgba(212,148,58,0.2), 0 0 40px rgba(212,148,58,0.1)',
                         }}>Ready to sharpen →</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>

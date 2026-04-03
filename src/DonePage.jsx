@@ -7,6 +7,7 @@ export default function DonePage({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
   const [drafts, setDrafts] = useState(loadDoneDrafts);
   const [copiedId, setCopiedId] = useState(null);
+  const [viewingDraft, setViewingDraft] = useState(null);
   const copiedTimeout = useRef(null);
 
   const refresh = useCallback(() => setDrafts(loadDoneDrafts()), []);
@@ -37,7 +38,7 @@ export default function DonePage({ onNavigate, onRefine }) {
   };
 
   const handleDownload = (draft) => {
-    const content = `--- Original ---\n\n${draft.text}\n\n--- Polished ---\n\n${draft.refinedText || draft.text}`;
+    const content = draft.refinedText || draft.text;
     downloadTextFile(content, `polished-${draft.title || 'draft'}-${formatDate()}.txt`);
   };
 
@@ -90,10 +91,10 @@ export default function DonePage({ onNavigate, onRefine }) {
       {/* Page title — golden and shiny */}
       <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 30 }}>
         <div style={{
-          fontSize: 32, fontWeight: 700, color: '#D4943A',
+          fontSize: 34, fontWeight: 700, color: '#D4943A',
           fontFamily: "'Source Serif 4', serif",
-          textShadow: '0 0 16px rgba(212,148,58,0.6), 0 0 32px rgba(212,148,58,0.3), 0 0 60px rgba(212,148,58,0.15)',
-        }}>✭ Polished</div>
+          textShadow: '0 0 20px rgba(212,148,58,0.8), 0 0 40px rgba(212,148,58,0.5), 0 0 70px rgba(212,148,58,0.25), 0 0 100px rgba(212,148,58,0.1)',
+        }}>✭ Finished Works</div>
         <p style={{ fontSize: 14, color: '#8B7B6B', marginTop: 8, lineHeight: 1.5 }}>
           Your sharpened, completed work lives here.
           <br /><span style={{ fontSize: 12, fontStyle: 'italic', opacity: 0.7 }}>(You can always re-edit these if needed)</span>
@@ -103,8 +104,8 @@ export default function DonePage({ onNavigate, onRefine }) {
       {/* Decorative gold line */}
       <div style={{
         width: '100%', maxWidth: 750, height: 2, marginBottom: 24,
-        background: 'linear-gradient(90deg, transparent 0%, #D4943A 30%, #E8C860 50%, #D4943A 70%, transparent 100%)',
-        borderRadius: 1, opacity: 0.5,
+        background: 'linear-gradient(90deg, transparent 0%, #D4943A 20%, #F0D060 50%, #D4943A 80%, transparent 100%)',
+        borderRadius: 1, opacity: 0.7,
       }} />
 
       {/* Content */}
@@ -128,10 +129,10 @@ export default function DonePage({ onNavigate, onRefine }) {
 
             {group.drafts.map(draft => (
               <div key={draft.id} style={{
-                background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF8E8 100%)',
+                background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF8E8 50%, #FFFDF5 100%)',
                 borderRadius: 14, padding: '20px 24px', marginBottom: 12,
-                border: '2px solid #E8D5A0',
-                boxShadow: '0 2px 12px rgba(212,148,58,0.1), 0 0 20px rgba(212,148,58,0.05)',
+                border: '2px solid #D4943A',
+                boxShadow: '0 2px 16px rgba(212,148,58,0.15), 0 0 30px rgba(212,148,58,0.08), 0 0 0 1px rgba(212,148,58,0.1)',
               }}>
                 {/* Title */}
                 {draft.title && (
@@ -156,6 +157,14 @@ export default function DonePage({ onNavigate, onRefine }) {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button onClick={() => setViewingDraft(draft)} style={{
+                    padding: '7px 16px', fontSize: 11, fontWeight: 700,
+                    background: 'linear-gradient(135deg, #D4943A 0%, #E8B860 50%, #D4943A 100%)',
+                    color: '#FFF', border: 'none',
+                    borderRadius: 8, cursor: 'pointer',
+                    boxShadow: '0 2px 12px rgba(212,148,58,0.4), 0 0 20px rgba(212,148,58,0.15)',
+                    textShadow: '0 0 10px rgba(255,255,255,0.5)',
+                  }}>📄 See Finished Product</button>
                   <button onClick={() => handleCopy(draft.refinedText || draft.text, draft.id)} style={{
                     padding: '7px 16px', fontSize: 11, fontWeight: 600,
                     background: '#D4943A', color: '#FFF', border: 'none',
@@ -188,6 +197,63 @@ export default function DonePage({ onNavigate, onRefine }) {
           </div>
         ))}
       </div>
+
+      {/* Finished Product Viewer Modal */}
+      {viewingDraft && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 500, padding: 20,
+        }} onClick={(e) => { if (e.target === e.currentTarget) setViewingDraft(null); }}>
+          <div style={{
+            background: 'linear-gradient(180deg, #FFFDF5 0%, #FFF8E8 100%)',
+            borderRadius: 20, maxWidth: 700, width: '100%',
+            maxHeight: '85vh', overflowY: 'auto', padding: '40px 44px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 40px rgba(212,148,58,0.15), 0 0 0 2px #D4943A',
+            fontFamily: "'Source Serif 4', serif",
+          }}>
+            {viewingDraft.title && (
+              <h1 style={{
+                fontSize: 28, fontWeight: 700, color: '#2D8B5A', marginBottom: 16,
+                lineHeight: 1.3,
+              }}>{viewingDraft.title}</h1>
+            )}
+            <div style={{
+              fontSize: 17, color: '#3A3020', lineHeight: 2,
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+            }}>{viewingDraft.refinedText || viewingDraft.text}</div>
+
+            <div style={{
+              marginTop: 30, paddingTop: 20,
+              borderTop: '2px solid rgba(212,148,58,0.2)',
+              display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap',
+            }}>
+              <button onClick={() => handleCopy(viewingDraft.refinedText || viewingDraft.text, viewingDraft.id)} style={{
+                padding: '10px 20px', fontSize: 13, fontWeight: 600,
+                background: '#D4943A', color: '#FFF', border: 'none',
+                borderRadius: 10, cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(212,148,58,0.3)',
+              }}>{copiedId === viewingDraft.id ? 'Copied!' : '📋 Copy Text'}</button>
+              <button onClick={() => handleDownload(viewingDraft)} style={{
+                padding: '10px 20px', fontSize: 13, fontWeight: 600,
+                background: 'transparent', color: '#D4943A', border: '1.5px solid #D4943A',
+                borderRadius: 10, cursor: 'pointer',
+              }}>↓ Download</button>
+              <button onClick={() => setViewingDraft(null)} style={{
+                padding: '10px 20px', fontSize: 13,
+                background: 'transparent', color: '#8B7B6B', border: '1px solid #D4C4A8',
+                borderRadius: 10, cursor: 'pointer',
+              }}>Close</button>
+            </div>
+
+            <div style={{
+              textAlign: 'center', marginTop: 14, fontSize: 11, color: '#A8977A',
+            }}>
+              {(viewingDraft.refinedText || viewingDraft.text).trim().split(/\s+/).length} words · Finished {new Date(viewingDraft.createdAt).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

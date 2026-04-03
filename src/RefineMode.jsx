@@ -605,7 +605,14 @@ export default function RefineMode({ draft, onNavigate }) {
           background: 'transparent', color: '#D4943A',
           border: '1px solid #D4943A', borderRadius: 8, cursor: 'pointer',
           textShadow: '0 0 10px rgba(212,148,58,0.5), 0 0 20px rgba(212,148,58,0.25)',
-        }}>↓ Save Sharpened Text to Computer</button>
+        }}>↓ Save Sharpened to Computer</button>
+        <button onClick={() => {
+          downloadTextFile(selectedOriginal.text, `original-${formatDate()}.txt`);
+        }} style={{
+          padding: '10px 24px', fontSize: 13, fontWeight: 600,
+          background: 'transparent', color: t.mutedText,
+          border: `1px solid ${t.borderColor}`, borderRadius: 8, cursor: 'pointer',
+        }}>↓ Save Original to Computer</button>
       </div>
 
       {/* Tips panel */}
