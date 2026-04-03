@@ -83,8 +83,8 @@ const STEPS = [
   {
     title: 'Saving Your Sharpened Work',
     body: 'When done editing, click "Finish & Save to Browser/Account" to save. OR just hit "← Back to Drafts" and it will also automatically save to your browser. You can also copy your sharpened text or download it to your computer for extra safe keeping.',
-    action: 'Click Next to finish the tour.',
-    waitFor: 'next',
+    action: 'Try clicking "Finish & Save" or "← Back to Drafts", or click Next.',
+    waitFor: 'leaveRefine',
     page: 'refine',
     highlightText: ['Finish & Save', 'Copy Sharpened', 'Save Sharpened', 'Back to Drafts'],
   },
@@ -93,7 +93,7 @@ const STEPS = [
     body: 'That\'s the Draft, Stop & Sharpen method: write freely, rest your draft, then sharpen with fresh eyes. The best creative work happens in stages.',
     action: 'Click "Finish Tour" to start writing!',
     waitFor: 'finish',
-    page: 'flow',
+    page: 'gap',
   },
 ];
 
@@ -172,6 +172,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
     }
   }, [showSaveModal, current.waitFor, currentPage]);
 
+  // Auto-advance: left the refine page (user clicked Back to Drafts or Finish & Save)
+  useEffect(() => {
+    if (current.waitFor === 'leaveRefine' && currentPage !== 'refine') {
+      setStep(s => s + 1);
+    }
+  }, [currentPage, current.waitFor]);
+
   // Auto-advance: page changed and matches next step's page
   useEffect(() => {
     if (step < STEPS.length - 1) {
@@ -206,7 +213,7 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
   const handleSkip = () => { clearTour(); onEnd(); };
 
   const isCentered = current.position === 'center';
-  const showNext = current.waitFor === 'next' || current.waitFor === 'finish' || current.waitFor === 'sessionEnd' || current.waitFor === 'savedDraft';
+  const showNext = current.waitFor === 'next' || current.waitFor === 'finish' || current.waitFor === 'sessionEnd' || current.waitFor === 'savedDraft' || current.waitFor === 'leaveRefine';
 
   return (
     <div style={{
