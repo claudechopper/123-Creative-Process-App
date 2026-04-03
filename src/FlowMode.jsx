@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { addDraft, addProject, loadProjects, downloadTextFile, formatDate } from './storage';
+import { addDraft, addProject, loadProjects, loadActiveDrafts, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
 import NavBar from './NavBar';
@@ -12,7 +12,7 @@ const silverShimmer = {
   textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
 };
 
-export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourState }) {
+export default function FlowMode({ onNavigate, onRefine, tourActive, onTourEnd, onTourState }) {
   const { user, login } = useAuth();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
@@ -251,7 +251,11 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
             }}>↓ Save to Computer</button>
           )}
 
-          <NavBar currentPage="flow" onNavigate={onNavigate} onSharpen={() => onNavigate('gap')} />
+          <NavBar currentPage="flow" onNavigate={onNavigate} onSharpen={() => {
+            const ready = loadActiveDrafts().find(d => d.unlocksAt <= Date.now());
+            if (ready && onRefine) onRefine(ready);
+            else onNavigate('gap');
+          }} />
 
           {user ? (
             <div style={{

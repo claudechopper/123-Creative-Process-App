@@ -82,20 +82,29 @@ const STEPS = [
     page: 'refine',
   },
   {
-    title: 'Two Ways to Save',
-    body: '"← Save & Back to Drafts" saves your progress and returns to All Drafts — you can keep sharpening later. "Finish & Save ✓" marks the piece as done and moves it to your ✭ Finished Works page.',
-    action: 'Click Next to continue.',
-    waitFor: 'next',
+    title: 'Save Progress & Continue Later',
+    body: 'Click "← Save & Back to Drafts" to save your work-in-progress and return to the All Drafts page. You can come back and keep sharpening anytime.',
+    action: 'Click "← Save & Back to Drafts" now.',
+    waitFor: 'leaveRefine',
     page: 'refine',
-    highlightText: ['Save & Back', 'Finish & Save'],
+    highlightText: ['Save & Back'],
+    blockOtherButtons: true,
+  },
+  {
+    title: 'Back on Drafts — Your Work is Saved',
+    body: 'See? Your draft is still here, saved with your progress. Now let\'s go back to the Sharpen & Edit page to see how to finish a piece.',
+    action: 'Click Next to return to Sharpen & Edit.',
+    waitFor: 'next',
+    page: 'gap',
   },
   {
     title: 'Finish & Polish',
-    body: 'Try clicking "Finish & Save ✓" now to move this piece to your Finished Works page. Or click Next to skip ahead.',
-    action: 'Click "Finish & Save" or Next.',
+    body: 'When your edit is truly done, click "Finish & Save ✓" — this moves your piece to the ✭ Finished Works page, where all your completed work lives.',
+    action: 'Click "Finish & Save ✓" now.',
     waitFor: 'leaveRefine',
     page: 'refine',
     highlightText: ['Finish & Save'],
+    blockOtherButtons: true,
   },
   {
     title: '✭ Finished Works',
@@ -134,8 +143,12 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
     }
   }, [step, current.page, currentPage, onNavigatePage]);
 
-  // Highlight target elements
+  // Highlight target elements + optional button blocking
   useEffect(() => {
+    // Remove old overlay
+    const oldOverlay = document.getElementById('tour-block-overlay');
+    if (oldOverlay) oldOverlay.remove();
+
     const addPulse = () => {
       document.querySelectorAll('.tour-pulse').forEach(el => {
         el.classList.remove('tour-pulse');
@@ -155,6 +168,15 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
         }
       });
     };
+
+    // Add blocking overlay if needed
+    if (current.blockOtherButtons) {
+      const overlay = document.createElement('div');
+      overlay.id = 'tour-block-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:40;background:rgba(0,0,0,0.15);pointer-events:auto;';
+      document.body.appendChild(overlay);
+    }
+
     addPulse();
     highlightIntervalRef.current = setInterval(addPulse, 500);
     return () => {
@@ -165,8 +187,10 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
         el.style.removeProperty('box-shadow');
         el.style.removeProperty('z-index');
       });
+      const overlay = document.getElementById('tour-block-overlay');
+      if (overlay) overlay.remove();
     };
-  }, [step, current.highlightText]);
+  }, [step, current.highlightText, current.blockOtherButtons]);
 
   // Auto-advance: time picker opened
   useEffect(() => {

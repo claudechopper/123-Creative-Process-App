@@ -75,6 +75,7 @@ export default function App() {
       {mode === 'flow' && (
         <FlowMode
           onNavigate={handleNavigate}
+          onRefine={handleRefine}
           tourActive={tourActive}
           onTourEnd={handleEndTour}
           onTourState={tourActive ? setTourFlowState : undefined}
