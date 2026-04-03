@@ -43,23 +43,23 @@ const STEPS = [
   },
   {
     title: 'Finish Your Session',
-    body: 'When you\'re done, click "Finish Session & Save to Browser" to save your draft. It will then enter a 12-hour incubation period on the Stop & Incubate page.',
+    body: 'When you\'re done, click "Finish Session & Save to Browser" to save your draft. It will then enter a 12-hour incubation period on the Stop & Incubate page. You can override this wait and start editing right away, but we don\'t recommend it.',
     action: 'Click the button when ready, or Next to skip ahead.',
-    waitFor: 'next',
+    waitFor: 'sessionEnd',
     page: 'flow',
     highlightText: ['Finish Session'],
     position: 'center',
   },
   {
     title: 'Save Your Draft',
-    body: 'After finishing, you\'ll see this save dialog. Choose to save as a new draft, save to a project, or create a new project for it.',
-    action: 'Click Next to continue to the Stop/Drafts page.',
-    waitFor: 'next',
+    body: 'Choose to save as a new draft, save to a project, or create a new project for it.',
+    action: 'Save your draft, or click Next to continue.',
+    waitFor: 'savedDraft',
     page: 'flow',
     highlightText: ['Save as New'],
   },
   {
-    title: '🌙 The Stop/Drafts Page',
+    title: '🌙 The Drafts/Stop Page',
     body: 'This is your Stop & Incubate page — where your drafts rest and live. You can organize them into projects, drag them between projects, and create new projects here.',
     action: 'Click Next to continue.',
     waitFor: 'next',
@@ -99,6 +99,7 @@ const STEPS = [
 
 export default function GuidedTour({ sessionActive, hasText, showTimePicker, showSaveModal, currentPage, onNavigatePage, onEnd }) {
   const [step, setStep] = useState(0);
+  const prevStepRef = useRef(0);
   const highlightIntervalRef = useRef(null);
 
   const current = STEPS[step];
@@ -144,23 +145,58 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
     };
   }, [step, current.highlightText]);
 
-  // Auto-advance
+  // Auto-advance: time picker opened
   useEffect(() => {
     if (current.waitFor === 'timePicker' && showTimePicker) setStep(s => s + 1);
   }, [showTimePicker, current.waitFor]);
 
+  // Auto-advance: session started
   useEffect(() => {
     if (current.waitFor === 'sessionStart' && sessionActive) setStep(s => s + 1);
   }, [sessionActive, current.waitFor]);
+
+  // Auto-advance: session ended (user clicked finish session)
+  useEffect(() => {
+    if (current.waitFor === 'sessionEnd' && !sessionActive && prevStepRef.current === step) {
+      setStep(s => s + 1);
+    }
+  }, [sessionActive, current.waitFor, step]);
+
+  // Auto-advance: save modal appeared
+  useEffect(() => {
+    if (current.waitFor === 'savedDraft' && showSaveModal) {
+      // Wait for save modal to close (draft was saved)
+    }
+    if (current.waitFor === 'savedDraft' && !showSaveModal && currentPage === 'gap') {
+      setStep(s => s + 1);
+    }
+  }, [showSaveModal, current.waitFor, currentPage]);
+
+  // Track previous step for auto-advance logic
+  useEffect(() => {
+    prevStepRef.current = step;
+  }, [step]);
 
   const handleNext = () => {
     if (current.waitFor === 'finish') { clearTour(); onEnd(); return; }
     if (step < STEPS.length - 1) setStep(step + 1);
   };
 
+  const handleBack = () => {
+    if (step > 0) {
+      const newStep = step - 1;
+      const prevStepData = STEPS[newStep];
+      if (prevStepData.page !== current.page && onNavigatePage) {
+        onNavigatePage(prevStepData.page);
+      }
+      setStep(newStep);
+    }
+  };
+
   const handleSkip = () => { clearTour(); onEnd(); };
 
   const isCentered = current.position === 'center';
+  const showNext = current.waitFor === 'next' || current.waitFor === 'finish' || current.waitFor === 'sessionEnd' || current.waitFor === 'savedDraft';
 
   return (
     <div style={{
@@ -198,17 +234,13 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         {step > 0 && (
-          <button onClick={() => {
-            const prevStep = STEPS[step - 1];
-            if (prevStep && prevStep.page !== current.page && onNavigatePage) onNavigatePage(prevStep.page);
-            setStep(step - 1);
-          }} style={{
+          <button onClick={handleBack} style={{
             padding: '8px 16px', fontSize: 12, fontWeight: 600,
             background: 'transparent', border: '1px solid #D4C4A8',
             borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',
           }}>← Back</button>
         )}
-        {(current.waitFor === 'next' || current.waitFor === 'finish') && (
+        {showNext && (
           <button onClick={handleNext} style={{
             padding: '8px 20px', fontSize: 12, fontWeight: 700,
             background: '#D4943A', color: '#FFF', border: 'none',

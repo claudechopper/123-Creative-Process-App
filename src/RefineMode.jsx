@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject } from './storage';
+import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject, groupDraftsByProject } from './storage';
 import TipsPanel from './TipsPanel';
 
 export default function RefineMode({ draft, onNavigate }) {
@@ -20,6 +20,7 @@ export default function RefineMode({ draft, onNavigate }) {
   const [showNewDraft, setShowNewDraft] = useState(false);
   const [showDraftWarning, setShowDraftWarning] = useState(false);
   const [showImportList, setShowImportList] = useState(false);
+  const [selectedImportIds, setSelectedImportIds] = useState([]);
   const [newDraftText, setNewDraftText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const copiedTimeout = useRef(null);
@@ -368,62 +369,100 @@ export default function RefineMode({ draft, onNavigate }) {
                   padding: '8px 16px', fontSize: 12, fontWeight: 600,
                   background: '#D4943A', color: '#FFF', border: 'none',
                   borderRadius: 8, cursor: 'pointer',
-                }}>Continue Anyway</button>
+                }}>Write New Anyway</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Import draft from list modal */}
-        {showImportList && (
-          <div style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
-          }} onClick={(e) => { if (e.target === e.currentTarget) setShowImportList(false); }}>
+        {/* Import draft from list modal — multi-select grouped by project */}
+        {showImportList && (() => {
+          const allGroups = groupDraftsByProject();
+          const availableDrafts = loadDrafts().filter(d => !projectDrafts.find(pd => pd.id === d.id));
+          const toggleSelect = (id) => {
+            setSelectedImportIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+          };
+          const handleAddSelected = () => {
+            selectedImportIds.forEach(id => {
+              if (draft.projectId) moveDraftToProject(id, draft.projectId);
+            });
+            setSelectedImportIds([]);
+            setShowImportList(false);
+            setRefreshKey(k => k + 1);
+          };
+          return (
             <div style={{
-              background: '#1A2B22', borderRadius: 16, padding: 28, maxWidth: 480, width: '90%',
-              maxHeight: '70vh', overflowY: 'auto',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #2A3D30',
-            }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#E8EDF2', marginBottom: 14 }}>Import Draft Card</h3>
-              <p style={{ fontSize: 12, color: '#7A9A80', marginBottom: 14 }}>Select one or more drafts to add to this project's Original column:</p>
-              {loadDrafts().filter(d => !projectDrafts.find(pd => pd.id === d.id)).map(d => (
-                <div key={d.id} style={{
-                  background: '#14201A', borderRadius: 8, padding: '12px 14px', marginBottom: 8,
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  border: '1px solid #2A3D30',
-                }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: '#C0C8D4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {d.text.slice(0, 60).replace(/\n/g, ' ')}{d.text.length > 60 ? '...' : ''}
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
+            }} onClick={(e) => { if (e.target === e.currentTarget) { setShowImportList(false); setSelectedImportIds([]); } }}>
+              <div style={{
+                background: '#1A2B22', borderRadius: 16, padding: 28, maxWidth: 500, width: '90%',
+                maxHeight: '75vh', overflowY: 'auto',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #2A3D30',
+              }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#E8EDF2', marginBottom: 6 }}>Import Draft Cards</h3>
+                <p style={{ fontSize: 12, color: '#7A9A80', marginBottom: 14 }}>Select drafts to add to this project:</p>
+
+                {allGroups.map(group => {
+                  const groupAvailable = group.drafts.filter(d => availableDrafts.find(ad => ad.id === d.id));
+                  if (groupAvailable.length === 0) return null;
+                  return (
+                    <div key={group.project.id} style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94787B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {group.project.name}
+                      </div>
+                      {groupAvailable.map(d => {
+                        const isSelected = selectedImportIds.includes(d.id);
+                        return (
+                          <div key={d.id} onClick={() => toggleSelect(d.id)} style={{
+                            background: isSelected ? '#2A3D30' : '#14201A', borderRadius: 8,
+                            padding: '10px 14px', marginBottom: 6, cursor: 'pointer',
+                            border: isSelected ? '2px solid #D4943A' : '1px solid #2A3D30',
+                            display: 'flex', alignItems: 'center', gap: 10,
+                          }}>
+                            <div style={{
+                              width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                              border: isSelected ? '2px solid #D4943A' : '2px solid #5E7A62',
+                              background: isSelected ? '#D4943A' : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#FFF', fontSize: 12,
+                            }}>{isSelected ? '✓' : ''}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, color: '#C0C8D4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {d.text.slice(0, 55).replace(/\n/g, ' ')}{d.text.length > 55 ? '...' : ''}
+                              </div>
+                              <div style={{ fontSize: 10, color: '#5E7A62', marginTop: 3 }}>{d.wordCount} words · {new Date(d.createdAt).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div style={{ fontSize: 10, color: '#5E7A62', marginTop: 4 }}>{d.wordCount} words · {new Date(d.createdAt).toLocaleDateString()}</div>
+                  );
+                })}
+
+                {availableDrafts.length === 0 && (
+                  <p style={{ fontSize: 13, color: '#7A9A80', textAlign: 'center', padding: 20 }}>No other drafts available to import.</p>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, borderTop: '1px solid #2A3D30', paddingTop: 14 }}>
+                  <span style={{ fontSize: 12, color: '#7A9A80' }}>{selectedImportIds.length} selected</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setShowImportList(false); setSelectedImportIds([]); }} style={{
+                      padding: '8px 16px', fontSize: 12, background: 'transparent',
+                      border: '1px solid #2A3D30', borderRadius: 8, color: '#7A9A80', cursor: 'pointer',
+                    }}>Cancel</button>
+                    <button onClick={handleAddSelected} disabled={selectedImportIds.length === 0} style={{
+                      padding: '8px 20px', fontSize: 12, fontWeight: 600,
+                      background: selectedImportIds.length > 0 ? '#D4943A' : '#2A3D30',
+                      color: '#FFF', border: 'none', borderRadius: 8,
+                      cursor: selectedImportIds.length > 0 ? 'pointer' : 'default',
+                    }}>Add {selectedImportIds.length > 0 ? `(${selectedImportIds.length})` : ''}</button>
                   </div>
-                  <button onClick={() => {
-                    if (draft.projectId) {
-                      moveDraftToProject(d.id, draft.projectId);
-                    }
-                    setShowImportList(false);
-                    setRefreshKey(k => k + 1);
-                  }} style={{
-                    padding: '6px 12px', fontSize: 11, fontWeight: 600, marginLeft: 8,
-                    background: '#D4943A', color: '#FFF', border: 'none',
-                    borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap',
-                  }}>Add →</button>
                 </div>
-              ))}
-              {loadDrafts().filter(d => !projectDrafts.find(pd => pd.id === d.id)).length === 0 && (
-                <p style={{ fontSize: 13, color: '#7A9A80', textAlign: 'center', padding: 20 }}>No other drafts available to import.</p>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-                <button onClick={() => setShowImportList(false)} style={{
-                  padding: '8px 16px', fontSize: 12, background: 'transparent',
-                  border: '1px solid #2A3D30', borderRadius: 8, color: '#7A9A80', cursor: 'pointer',
-                }}>Done</button>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Editable — shimmering gold text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>

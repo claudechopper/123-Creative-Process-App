@@ -34,9 +34,9 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
   // Report state to tour
   useEffect(() => {
     if (onTourState) {
-      onTourState({ sessionActive, hasText: text.length > 10, showTimePicker });
+      onTourState({ sessionActive, hasText: text.length > 10, showTimePicker, showSaveModal });
     }
-  }, [sessionActive, text.length > 10, showTimePicker, onTourState]);
+  }, [sessionActive, text.length > 10, showTimePicker, showSaveModal, onTourState]);
 
   const showSave = useCallback(() => {
     clearInterval(timerRef.current);
@@ -253,7 +253,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
           <button onClick={() => onNavigate('gap')} style={{
             padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-          }}>Stop/Drafts</button>
+          }}>Drafts/Stop</button>
 
           {user ? (
             <div style={{

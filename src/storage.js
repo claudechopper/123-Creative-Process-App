@@ -122,7 +122,6 @@ export function groupDraftsByProject() {
   });
 
   const result = projects
-    .filter(p => grouped[p.id].drafts.length > 0)
     .map(p => grouped[p.id]);
   if (grouped['uncategorized'].drafts.length > 0) {
     result.push(grouped['uncategorized']);

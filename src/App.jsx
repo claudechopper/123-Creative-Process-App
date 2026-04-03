@@ -13,7 +13,7 @@ export default function App() {
   const [mode, setMode] = useState('flow');
   const [refineDraft, setRefineDraft] = useState(null);
   const [tourActive, setTourActive] = useState(false);
-  const [tourFlowState, setTourFlowState] = useState({ sessionActive: false, hasText: false, showTimePicker: false });
+  const [tourFlowState, setTourFlowState] = useState({ sessionActive: false, hasText: false, showTimePicker: false, showSaveModal: false });
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -89,6 +89,7 @@ export default function App() {
           sessionActive={tourFlowState.sessionActive}
           hasText={tourFlowState.hasText}
           showTimePicker={tourFlowState.showTimePicker}
+          showSaveModal={tourFlowState.showSaveModal}
           currentPage={mode}
           onNavigatePage={handleTourNavigate}
           onEnd={handleEndTour}

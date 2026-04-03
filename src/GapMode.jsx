@@ -12,6 +12,7 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [dragOverProjectId, setDragOverProjectId] = useState(null);
   const [draggedDraftId, setDraggedDraftId] = useState(null);
   const [dragOverGroupId, setDragOverGroupId] = useState(null);
+  const [dragOverDraftId, setDragOverDraftId] = useState(null);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [showNewProject, setShowNewProject] = useState(false);
@@ -106,7 +107,47 @@ export default function GapMode({ onNavigate, onRefine }) {
     e.dataTransfer.effectAllowed = 'move';
     setDraggedDraftId(draftId);
   };
-  const handleDraftDragEnd = () => { setDraggedDraftId(null); setDragOverGroupId(null); };
+  const handleDraftDragEnd = () => { setDraggedDraftId(null); setDragOverGroupId(null); setDragOverDraftId(null); };
+
+  const handleDraftDragOver = (e, targetDraftId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (targetDraftId !== draggedDraftId) setDragOverDraftId(targetDraftId);
+  };
+
+  const handleDraftDrop = (e, targetDraftId, targetProjectId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fromDraftId = e.dataTransfer.getData('application/x-draft-move');
+    const fromProjectId = e.dataTransfer.getData('application/x-draft-source');
+    if (!fromDraftId || fromDraftId === targetDraftId) {
+      setDraggedDraftId(null); setDragOverDraftId(null);
+      return;
+    }
+    const effectiveTarget = targetProjectId || 'uncategorized';
+    const effectiveSource = fromProjectId || 'uncategorized';
+    if (effectiveSource === effectiveTarget) {
+      // Within-project reorder
+      const group = groups.find(g => g.project.id === effectiveTarget);
+      if (group) {
+        const ids = group.drafts.map(d => d.id);
+        const fromIdx = ids.indexOf(fromDraftId);
+        const toIdx = ids.indexOf(targetDraftId);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          ids.splice(fromIdx, 1);
+          ids.splice(toIdx, 0, fromDraftId);
+          reorderDrafts(targetProjectId, ids);
+          refresh();
+        }
+      }
+    } else {
+      // Cross-project move
+      moveDraftToProject(fromDraftId, targetProjectId === 'uncategorized' ? null : targetProjectId);
+      refresh();
+    }
+    setDraggedDraftId(null); setDragOverDraftId(null); setDragOverGroupId(null);
+  };
 
   // --- Draft arrow reorder within project ---
   const moveDraftInProject = (projectId, draftId, direction) => {
@@ -175,11 +216,8 @@ export default function GapMode({ onNavigate, onRefine }) {
         width: '100%', maxWidth: 700, display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', padding: '20px 0',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
-            <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
-          </div>
-          <span style={{ fontSize: 14, color: '#C0392B', fontWeight: 600 }}>Stop & Incubate</span>
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
+          <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => onNavigate('flow')} style={{
@@ -206,8 +244,13 @@ export default function GapMode({ onNavigate, onRefine }) {
         </div>
       </div>
 
+      {/* Page subtitle - centered */}
+      <div style={{ textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
+        <span style={{ fontSize: 16, color: '#C0392B', fontWeight: 700, letterSpacing: '0.5px' }}>Stop & Incubate</span>
+      </div>
+
       {/* Center content */}
-      <div style={{ textAlign: 'center', marginTop: 30, marginBottom: 24, opacity: 0.5 }}>
+      <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 24, opacity: 0.5 }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🌙</div>
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8 }}>YOUR DRAFTS ARE INCUBATING</div>
         <p style={{ fontSize: 13, maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
@@ -282,6 +325,8 @@ export default function GapMode({ onNavigate, onRefine }) {
                     key={draft.id}
                     draggable
                     onDragStart={(e) => handleDraftDragStart(e, draft.id, draft.projectId)}
+                    onDragOver={(e) => handleDraftDragOver(e, draft.id)}
+                    onDrop={(e) => handleDraftDrop(e, draft.id, group.project.id)}
                     onDragEnd={handleDraftDragEnd}
                     style={{
                       background: isReady ? '#F5EDEB' : '#E5D8D5',
@@ -289,6 +334,7 @@ export default function GapMode({ onNavigate, onRefine }) {
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       opacity: isDragging ? 0.4 : isReady ? 1 : 0.7,
                       cursor: 'grab',
+                      borderTop: dragOverDraftId === draft.id ? '3px solid #D4943A' : '3px solid transparent',
                     }}
                   >
                     {/* Arrow buttons for within-project reorder */}
