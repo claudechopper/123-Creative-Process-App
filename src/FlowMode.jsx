@@ -196,13 +196,13 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
           {sessionActive && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ display: 'flex', background: '#EDE5D4', borderRadius: 20, padding: 3 }}>
-                <button onClick={() => setStrictMode(true)} style={{
+                <button onClick={() => { setStrictMode(true); setTimeout(() => textareaRef.current?.focus(), 50); }} style={{
                   padding: '6px 14px', fontSize: 12, fontWeight: 600, border: 'none',
                   borderRadius: 17, cursor: 'pointer',
                   background: strictMode ? '#A8B4C4' : 'transparent',
                   color: strictMode ? '#FFF' : '#8B7B6B',
                 }}>Strict</button>
-                <button onClick={() => setStrictMode(false)} style={{
+                <button onClick={() => { setStrictMode(false); setTimeout(() => textareaRef.current?.focus(), 50); }} style={{
                   padding: '6px 14px', fontSize: 12, fontWeight: 600, border: 'none',
                   borderRadius: 17, cursor: 'pointer',
                   background: !strictMode ? '#A8B4C4' : 'transparent',

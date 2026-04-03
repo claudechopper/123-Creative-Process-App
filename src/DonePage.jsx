@@ -44,7 +44,10 @@ export default function DonePage({ onNavigate, onRefine }) {
 
   const handleReEdit = (draft) => onRefine(draft);
 
-  const handleMoveBack = (id) => { updateDraft(id, { refined: false }); refresh(); };
+  const handleMoveBack = (id) => {
+    updateDraft(id, { refined: false });
+    onNavigate('gap');
+  };
 
   const handleDelete = (id) => {
     if (!confirm('Delete this finished piece? This cannot be undone.')) return;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, moveDraftToProject, reorderDrafts } from './storage';
+import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, deleteProject, moveDraftToProject, reorderDrafts } from './storage';
 import NavBar from './NavBar';
 
 export default function GapMode({ onNavigate, onRefine }) {
@@ -318,6 +318,19 @@ export default function GapMode({ onNavigate, onRefine }) {
                   <span onClick={() => startEditing(group.project)} style={{ fontSize: 26, fontWeight: 700, color: '#4E3A38', cursor: group.project.id === 'uncategorized' ? 'default' : 'pointer', fontFamily: "'Source Serif 4', serif", borderBottom: '2px solid transparent' }} onMouseEnter={(e) => { if (group.project.id !== 'uncategorized') e.target.style.borderBottom = '2px dashed #C8B0AD'; }} onMouseLeave={(e) => { e.target.style.borderBottom = '2px solid transparent'; }}>{group.project.name}</span>
                 )}
                 <span style={{ fontSize: 13, color: '#94787B', fontWeight: 400 }}>({group.drafts.length})</span>
+                {group.project.id !== 'uncategorized' && (
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete project "${group.project.name}"? Drafts inside will be moved to Uncategorized.`)) {
+                        deleteProject(group.project.id);
+                        refresh();
+                      }
+                    }}
+                    style={{ background: 'transparent', border: 'none', color: '#B89B98', cursor: 'pointer', fontSize: 13, padding: '0 4px', marginLeft: 4 }}
+                  >×</button>
+                )}
               </div>
 
               {/* Draft cards */}

@@ -99,7 +99,7 @@ const STEPS = [
     title: 'Finish & Polish',
     body: 'When your edit is truly done, click "Finish & Save ✓" — this moves your piece to the ✭ Finished Works page, where all your completed work lives.',
     action: 'Click "Finish & Save" to try it, or click Next.',
-    waitFor: 'leaveRefine',
+    waitFor: 'next',
     page: 'refine',
     highlightText: ['Finish & Save'],
   },
@@ -112,7 +112,8 @@ const STEPS = [
   },
   {
     title: 'You\'re All Set!',
-    body: 'That\'s the Draft, Stop & Sharpen method: Draft freely → Stop & Incubate → Sharpen & Edit → Polished ✭. The best creative work happens in stages.',
+    body: null,
+    bodyJsx: true,
     action: 'Click "Finish Tour" to start writing!',
     waitFor: 'finish',
     page: null,
@@ -275,7 +276,23 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       </div>
 
       <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6, fontFamily: "'Source Serif 4', serif" }}>{current.title}</h3>
-      <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>{current.body}</p>
+      {current.bodyJsx ? (
+        <div style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>
+          <p>That's the</p>
+          <p style={{ fontSize: 18, fontWeight: 700, margin: '8px 0', lineHeight: 1.4 }}>
+            <span style={{ color: '#A8B4C4', textShadow: '0 0 10px rgba(168,180,196,0.5)' }}>Draft</span>
+            {', '}
+            <span style={{ color: '#C0392B' }}>Stop</span>
+            {' '}
+            <span style={{ color: '#D4943A', textShadow: '0 0 10px rgba(212,148,58,0.5)' }}>& Sharpen</span>
+            {' '}Method
+          </p>
+          <p><span style={{ color: '#A8B4C4' }}>Draft</span> freely → <span style={{ color: '#C0392B' }}>Stop</span> & Incubate → <span style={{ color: '#5A8F6A' }}>Sharpen</span> & Edit → <span style={{ color: '#D4943A' }}>Finished Works</span> ✭</p>
+          <p style={{ marginTop: 8 }}>The best creative work happens in stages.</p>
+        </div>
+      ) : (
+        <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>{current.body}</p>
+      )}
       <p style={{ fontSize: 12, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>👉 {current.action}</p>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
