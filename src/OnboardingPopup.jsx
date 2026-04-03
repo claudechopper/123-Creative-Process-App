@@ -68,35 +68,38 @@ export default function OnboardingPopup({ onStartTour }) {
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
             Your first draft should be a stream of consciousness — raw, unfiltered,
-            forward-moving. Get it all out.
-          </p>
-
-          <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
-            Studies in <em>Frontiers in Human
-            Neuroscience</em> show that your brain continues solving problems during
-            rest — subjects who slept on a problem were <strong>3x more likely</strong>{' '}
-            to discover the solution. Your best ideas don't come while staring at the
-            screen. They come after you step away and sleep on it.{' '}
-            <strong><em>What's more, your brain uses entirely different circuitry to create than
-            it does to critique — these two modes fight each other when forced together.</em></strong>
+            forward-moving. Get it all out. Then{' '}
+            <span style={{ color: '#D4943A', fontWeight: 600 }}>Sharpen and Edit</span> later,
+            after letting it incubate.
           </p>
 
           <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
             Hemingway was fabled to have said <strong>"Write intoxicated. Edit sober."</strong> —{' '}
             <span style={{ ...silverShimmer, fontWeight: 600 }}>raw creation first</span>,{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>sharp refinement</span> after.
-            Anne Lamott, Neil Young, Picasso, Ed Sheeran, Beethoven, and countless other
+            Neil Young, Picasso, Ed Sheeran, Beethoven, Anne Lamott, and countless other
             celebrated creators across every discipline all followed the same approach.
           </p>
 
-          <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 18 }}>
+          <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
             Why? Because{' '}
             <span style={{ ...silverShimmer, fontWeight: 600 }}>drafting</span> and{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>sharpening</span> are
             two completely different frames of mind, and the best artists know how to
             separate them.{' '}
             <strong><em>The whole point is getting words out before your inner critic shows up.</em></strong>
-            {' '}<strong style={{ color: '#D4943A' }}>THEN later Sharpening and Refining.</strong>
+            {' '}<strong style={{ color: '#D4943A' }}>THEN later Sharpening and Refining, after a period of rest.</strong>
+          </p>
+
+          <p style={{ fontSize: 14, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 18 }}>
+            Also, studies in <em>Frontiers in Human Neuroscience</em> show that your brain
+            continues solving problems during rest, subconsciously — subjects who slept on
+            a problem were <strong>3x more likely</strong> to discover the solution. Your best
+            ideas don't come while staring at the screen. They come after you step away and
+            sleep on it.{' '}
+            <strong><em>What's more, your brain uses entirely different circuitry to create than
+            it does to critique — these two modes fight each other when forced together.</em></strong>
+            {' '}So we've simplified the steps for you.
           </p>
 
           <div style={{
@@ -189,9 +192,9 @@ export default function OnboardingPopup({ onStartTour }) {
             { name: '"Strict" / "Gentle"', desc: '"Strict" blocks backspace entirely. "Gentle" allows it.', color: '#1A1A1A' },
             { name: 'Start Session', desc: 'Pick your time, then write until the timer ends.', color: '#1A1A1A' },
             { name: 'End Session & Save', desc: 'This saves your draft to the browser (or your account if you\'re signed in) and starts the 12-hour stop period.', color: '#1A1A1A' },
-            { name: 'My Drafts', desc: 'View all your resting and ready drafts.', color: '#A8B4C4' },
-            { name: 'Ready to Sharpen', desc: 'Opens side-by-side editing when the stop period is over.', color: '#A8B4C4' },
-            { name: 'Hints & Tips', desc: 'Creative techniques to help you write and edit.', color: '#A8B4C4' },
+            { name: 'Stop/Drafts', desc: 'View all your resting and ready drafts.', color: '#A8B4C4', shimmer: true },
+            { name: 'Ready to Sharpen', desc: 'Opens side-by-side editing when the stop period is over.', color: '#A8B4C4', shimmer: true },
+            { name: 'Hints & Tips', desc: 'Creative techniques to help you write and edit.', color: '#A8B4C4', shimmer: true },
           ].map(item => (
             <div key={item.name} style={{
               display: 'flex', gap: 8, marginBottom: 8, fontSize: 13,
@@ -199,6 +202,7 @@ export default function OnboardingPopup({ onStartTour }) {
             }}>
               <span style={{
                 fontWeight: 700, color: item.color, whiteSpace: 'nowrap',
+                ...(item.shimmer ? { textShadow: silverShimmer.textShadow } : {}),
               }}>{item.name}</span>
               <span style={{ color: '#6B5D4A' }}>— {item.desc}</span>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate } from './storage';
+import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft } from './storage';
 import TipsPanel from './TipsPanel';
 
 export default function RefineMode({ draft, onNavigate }) {
@@ -17,8 +17,13 @@ export default function RefineMode({ draft, onNavigate }) {
   const [showTips, setShowTips] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [showNewDraft, setShowNewDraft] = useState(false);
+  const [showDraftWarning, setShowDraftWarning] = useState(false);
+  const [newDraftText, setNewDraftText] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const copiedTimeout = useRef(null);
   const editTextareaRef = useRef(null);
+  const newDraftFileRef = useRef(null);
 
   const selectedOriginal = projectDrafts.find(d => d.id === selectedOriginalId) || draft;
   const originalWords = selectedOriginal.text.trim().split(/\s+/).length;
@@ -155,7 +160,10 @@ export default function RefineMode({ draft, onNavigate }) {
             padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
             borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
           }}>💡 Edit Tips</button>
-          <button onClick={() => onNavigate('gap')} style={{
+          <button onClick={() => {
+            updateDraft(draft.id, { refinedText: editedText });
+            onNavigate('gap');
+          }} style={{
             padding: '6px 12px', fontSize: 11, border: '1px solid #2A3D30',
             borderRadius: 8, background: 'transparent', color: '#7A9A80', cursor: 'pointer',
           }}>← Back to Drafts</button>
@@ -271,17 +279,108 @@ export default function RefineMode({ draft, onNavigate }) {
                 textShadow: '0 0 8px rgba(168,180,196,0.15)',
               }}>{selectedOriginal.text}</div>
             )}
+
+            {/* New draft button */}
+            {!showNewDraft && (
+              <div style={{ padding: 8 }}>
+                <button onClick={() => setShowDraftWarning(true)} style={{
+                  width: '100%', padding: '10px', fontSize: 12, fontWeight: 600,
+                  background: 'transparent', border: '1px dashed rgba(168,180,196,0.3)',
+                  borderRadius: 8, color: '#5E7A62', cursor: 'pointer',
+                }}>+ Add New Draft Here</button>
+              </div>
+            )}
+
+            {/* New draft form */}
+            {showNewDraft && (
+              <div style={{ padding: 10, borderTop: '1px solid rgba(168,180,196,0.15)' }}>
+                <input ref={newDraftFileRef} type="file" accept=".txt,.md,.csv,.json,.html,.xml,.rtf,.log" style={{ display: 'none' }} onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => { if (ev.target.result) setNewDraftText(ev.target.result); };
+                  reader.readAsText(file);
+                  e.target.value = '';
+                }} />
+                <textarea
+                  value={newDraftText}
+                  onChange={(e) => setNewDraftText(e.target.value)}
+                  placeholder="Write or paste your new draft here..."
+                  style={{
+                    width: '100%', minHeight: 100, padding: 10, fontSize: 13, lineHeight: 1.6,
+                    background: '#1A2630', border: '1px solid rgba(168,180,196,0.2)',
+                    borderRadius: 8, color: '#C0C8D4', resize: 'vertical',
+                    fontFamily: "'Source Serif 4', serif",
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  <button onClick={() => newDraftFileRef.current?.click()} style={{
+                    padding: '6px 10px', fontSize: 10, background: 'transparent',
+                    border: '1px solid #2A3D30', borderRadius: 6, color: '#7A9A80', cursor: 'pointer',
+                  }}>📄 Upload File</button>
+                  <button onClick={() => {
+                    if (!newDraftText.trim()) return;
+                    addDraft({ text: newDraftText.trim(), wordCount: newDraftText.trim().split(/\s+/).length, projectId: draft.projectId });
+                    setNewDraftText('');
+                    setShowNewDraft(false);
+                    setRefreshKey(k => k + 1);
+                  }} style={{
+                    padding: '6px 14px', fontSize: 10, fontWeight: 600,
+                    background: '#A8B4C4', color: '#FFF', border: 'none',
+                    borderRadius: 6, cursor: 'pointer',
+                  }}>Save Draft</button>
+                  <button onClick={() => { setShowNewDraft(false); setNewDraftText(''); }} style={{
+                    padding: '6px 10px', fontSize: 10, background: 'transparent',
+                    border: '1px solid #2A3D30', borderRadius: 6, color: '#7A9A80', cursor: 'pointer',
+                  }}>Cancel</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Warning modal for new draft */}
+        {showDraftWarning && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
+          }} onClick={(e) => { if (e.target === e.currentTarget) setShowDraftWarning(false); }}>
+            <div style={{
+              background: '#1A2B22', borderRadius: 16, padding: 28, maxWidth: 420, width: '90%',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid #2A3D30',
+            }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#E8EDF2', marginBottom: 10 }}>Heads up!</h3>
+              <p style={{ fontSize: 13, color: '#C8D4BC', lineHeight: 1.6, marginBottom: 18 }}>
+                It's generally better not to mix writing new drafts with sharpening and editing your final product — they use different mental modes. But we've made it possible if you'd still like to add a new draft here.
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => setShowDraftWarning(false)} style={{
+                  padding: '8px 16px', fontSize: 12, background: 'transparent',
+                  border: '1px solid #2A3D30', borderRadius: 8, color: '#7A9A80', cursor: 'pointer',
+                }}>Cancel</button>
+                <button onClick={() => { setShowDraftWarning(false); setShowNewDraft(true); }} style={{
+                  padding: '8px 16px', fontSize: 12, fontWeight: 600,
+                  background: '#D4943A', color: '#FFF', border: 'none',
+                  borderRadius: 8, cursor: 'pointer',
+                }}>Continue Anyway</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Editable — shimmering gold text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{
-            background: '#1E3028', padding: '10px 14px', borderRadius: '10px 10px 0 0',
-            fontSize: 16, fontWeight: 700, letterSpacing: '0.5px',
-            color: '#E2B44A', textAlign: 'center',
-            textShadow: '0 0 12px rgba(212,148,58,0.6), 0 0 24px rgba(212,148,58,0.3), 0 0 40px rgba(212,148,58,0.15)',
-          }}>✏️ Sharpen & Edit</div>
+            background: '#1E3028', padding: '8px 14px 10px', borderRadius: '10px 10px 0 0',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 10, color: '#7A9A80', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 2, fontWeight: 600 }}>Final</div>
+            <div style={{
+              fontSize: 16, fontWeight: 700, letterSpacing: '0.5px',
+              color: '#E2B44A',
+              textShadow: '0 0 12px rgba(212,148,58,0.6), 0 0 24px rgba(212,148,58,0.3), 0 0 40px rgba(212,148,58,0.15)',
+            }}>✏️ Sharpen & Edit</div>
+          </div>
           <textarea
             ref={editTextareaRef}
             value={editedText}

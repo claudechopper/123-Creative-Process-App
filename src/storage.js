@@ -134,6 +134,17 @@ export function getDraftsByProject(projectId) {
   return loadDrafts().filter(d => d.projectId === projectId);
 }
 
+// --- Move Draft Between Projects ---
+
+export function moveDraftToProject(draftId, newProjectId) {
+  const drafts = loadDrafts();
+  const idx = drafts.findIndex(d => d.id === draftId);
+  if (idx !== -1) {
+    drafts[idx].projectId = newProjectId === 'uncategorized' ? null : newProjectId;
+    saveDrafts(drafts);
+  }
+}
+
 // --- Reorder ---
 
 export function reorderDrafts(projectId, orderedIds) {

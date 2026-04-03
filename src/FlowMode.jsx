@@ -237,7 +237,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
           <button onClick={() => onNavigate('gap')} style={{
             padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-          }}>My Drafts</button>
+          }}>Stop/Drafts</button>
 
           {user ? (
             <div style={{

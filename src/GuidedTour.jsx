@@ -43,22 +43,23 @@ const STEPS = [
   },
   {
     title: 'End Your Session',
-    body: 'When you\'re done, click "End Session & Save to Browser" to save. Your draft enters a 12-hour rest period.',
+    body: 'When you\'re done, click "End Session & Save to Browser" to save. Your draft enters a 12-hour rest period on the Stop & Incubate page.',
     action: 'Click "End Session & Save to Browser" when ready, or Next to skip ahead.',
     waitFor: 'next',
     page: 'flow',
     highlightText: ['End Session'],
+    position: 'center',
   },
   {
-    title: '🌙 My Drafts Page',
-    body: 'This is where your resting drafts live. After 12 hours, they\'re ready to sharpen. You can organize them into projects.',
-    action: 'Click Next to see the Sharpen page.',
+    title: '🌙 The Stop/Drafts Page',
+    body: 'This is your Stop & Incubate page — where your drafts rest and live. You can organize them into projects, drag them between projects, and create new projects here.',
+    action: 'Click Next to continue.',
     waitFor: 'next',
     page: 'gap',
   },
   {
-    title: 'Ready to Sharpen',
-    body: 'When a draft is ready, you\'ll see a gold "Ready to Sharpen" button. Click it to enter the side-by-side editor.',
+    title: '⏳ The 12-Hour Incubation',
+    body: 'Research shows that sleeping on your work — or even just taking a break — dramatically improves your ability to edit critically. Your brain literally uses different neural pathways for creation vs. critique. That\'s why we suggest a 12-hour incubation period. When the timer finishes, you\'ll see a gold "Ready to Sharpen" button.',
     action: 'Click Next to see the Sharpen & Edit page.',
     waitFor: 'next',
     page: 'gap',
@@ -66,18 +67,18 @@ const STEPS = [
   },
   {
     title: '✏️ The Sharpen & Edit Page',
-    body: 'This is where you refine your work. Your original draft stays on the left (read-only). Your sharpened edit is on the right. You can drag cards from left to paste text into the right.',
+    body: 'This is where you refine your work. Your original draft stays on the left (read-only). Your "Final" sharpened edit is on the right. You can drag cards from the left and drop them into the right column.',
     action: 'Look around, then click Next.',
     waitFor: 'next',
     page: 'refine',
   },
   {
     title: 'Saving Your Sharpened Work',
-    body: 'When done editing, click "Done & Save to Browser/Account" to save. You can also copy your sharpened text or download it.',
+    body: 'When done editing, click "Done & Save to Browser/Account" to save. OR just hit "← Back to Drafts" and it will also automatically save to your browser. You can also copy your sharpened text or download it to your computer for extra safe keeping.',
     action: 'Click Next to finish the tour.',
     waitFor: 'next',
     page: 'refine',
-    highlightText: ['Done & Save', 'Copy Sharpened', 'Save Sharpened'],
+    highlightText: ['Done & Save', 'Copy Sharpened', 'Save Sharpened', 'Back to Drafts'],
   },
   {
     title: 'You\'re All Set!',
@@ -171,9 +172,12 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, cur
     onEnd();
   };
 
+  const isCentered = current.position === 'center';
+
   return (
     <div style={{
-      position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+      position: 'fixed',
+      ...(isCentered ? { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' } : { bottom: 20, left: '50%', transform: 'translateX(-50%)' }),
       zIndex: 900, maxWidth: 500, width: '90%',
       background: '#FDF6EC', borderRadius: 16, padding: '20px 24px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 2px #D4943A',
