@@ -72,6 +72,7 @@ const STEPS = [
     waitFor: 'next',
     page: 'gap',
     highlightText: ['Ready to sharpen', 'Override'],
+    position: 'center',
   },
   {
     title: '✏️ The Sharpen & Edit Page',

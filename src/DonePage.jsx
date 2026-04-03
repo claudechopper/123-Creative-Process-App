@@ -188,7 +188,7 @@ export default function DonePage({ onNavigate, onRefine }) {
                     padding: '7px 16px', fontSize: 11,
                     background: 'transparent', color: '#8B7B6B', border: '1px solid #D4C4A8',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>↩ Back to Drafts</button>
+                  }}>↩ Send This Back to Drafts</button>
                   <button onClick={() => handleDelete(draft.id)} style={{
                     padding: '7px 16px', fontSize: 11,
                     background: 'transparent', color: '#C0392B', border: '1px solid #C0392B',

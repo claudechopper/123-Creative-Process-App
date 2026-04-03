@@ -13,7 +13,7 @@ export default function RefineMode({ draft, onNavigate }) {
     : projectDraftsRaw;
 
   const [selectedOriginalId, setSelectedOriginalId] = useState(draft.id);
-  const [editedText, setEditedText] = useState(draft.text);
+  const [editedText, setEditedText] = useState(draft.refinedText || draft.text);
   const [copied, setCopied] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [draggedId, setDraggedId] = useState(null);

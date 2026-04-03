@@ -14,11 +14,13 @@ export default function NavBar({ currentPage, onNavigate }) {
         const isActive = currentPage === p.id;
         // Sharpen page needs a draft — redirect to gap page instead if clicked from non-refine
         const handleClick = () => {
+          if (isActive) return; // Already on this page
           if (p.needsDraft && currentPage !== 'refine') {
-            onNavigate('gap');
-          } else {
-            onNavigate(p.id);
+            // Need to pick a draft first — go to Drafts page
+            if (currentPage !== 'gap') onNavigate('gap');
+            return;
           }
+          onNavigate(p.id);
         };
         return (
           <button
