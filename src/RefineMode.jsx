@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject, groupDraftsByProject, deleteDraft } from './storage';
 import TipsPanel from './TipsPanel';
+import NavBar from './NavBar';
 
 export default function RefineMode({ draft, onNavigate }) {
   const [localDraftOrder, setLocalDraftOrder] = useState(null);
@@ -195,13 +196,17 @@ export default function RefineMode({ draft, onNavigate }) {
           }} style={{
             padding: '6px 12px', fontSize: 11, border: `1px solid ${t.borderColor}`,
             borderRadius: 8, background: 'transparent', color: t.mutedText, cursor: 'pointer',
-          }}>← Back to Drafts</button>
+          }}>← Save & Back to Drafts</button>
           <button onClick={handleDone} style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600,
-            border: 'none', borderRadius: 8, background: '#A8B4C4',
+            border: 'none', borderRadius: 8, background: '#D4943A',
             color: '#FFF', cursor: 'pointer',
-            textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-          }}>Finish & Save to Browser/Account ✓</button>
+            textShadow: '0 0 10px rgba(212,148,58,0.5)',
+          }}>Finish & Save ✓</button>
+          <NavBar currentPage="refine" onNavigate={(page) => {
+            updateDraft(draft.id, { refinedText: editedText });
+            onNavigate(page);
+          }} />
         </div>
       </div>
 

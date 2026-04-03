@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { addDraft, addProject, loadProjects, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
+import NavBar from './NavBar';
 const TIMER_OPTIONS = [5, 10, 15, 20, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
 const FAUCET_TARGET = 500;
 
@@ -250,10 +251,7 @@ export default function FlowMode({ onNavigate, tourActive, onTourEnd, onTourStat
             }}>↓ Save to Computer</button>
           )}
 
-          <button onClick={() => onNavigate('gap')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
-            borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-          }}>Drafts/Stop</button>
+          <NavBar currentPage="flow" onNavigate={onNavigate} />
 
           {user ? (
             <div style={{

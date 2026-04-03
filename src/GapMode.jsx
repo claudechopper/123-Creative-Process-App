@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { groupDraftsByProject, updateDraft, deleteDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, moveDraftToProject, reorderDrafts } from './storage';
+import NavBar from './NavBar';
 
 export default function GapMode({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
@@ -229,15 +230,7 @@ export default function GapMode({ onNavigate, onRefine }) {
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={() => onNavigate('flow')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #C8A8A6',
-            borderRadius: 8, background: 'transparent', color: '#5E3A38', cursor: 'pointer',
-          }}>+ New Session</button>
-          <button onClick={() => onNavigate('done')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #D4943A',
-            borderRadius: 8, background: 'transparent', color: '#D4943A', cursor: 'pointer',
-            fontWeight: 600,
-          }}>Finished ✭</button>
+          <NavBar currentPage="gap" onNavigate={onNavigate} />
           {user ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #A8B4C4',

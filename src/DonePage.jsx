@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { loadDoneDrafts, loadProjects, updateDraft, deleteDraft, downloadTextFile, formatDate } from './storage';
+import NavBar from './NavBar';
 
 export default function DonePage({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
@@ -26,15 +27,9 @@ export default function DonePage({ onNavigate, onRefine }) {
   });
 
   const handleCopy = async (text, id) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    try { await navigator.clipboard.writeText(text); } catch {
+      const ta = document.createElement('textarea'); ta.value = text;
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     }
     setCopiedId(id);
     clearTimeout(copiedTimeout.current);
@@ -42,23 +37,17 @@ export default function DonePage({ onNavigate, onRefine }) {
   };
 
   const handleDownload = (draft) => {
-    const content = `--- Original ---\n\n${draft.text}\n\n--- Sharpened ---\n\n${draft.refinedText || draft.text}`;
-    downloadTextFile(content, `finished-${draft.title || 'draft'}-${formatDate()}.txt`);
+    const content = `--- Original ---\n\n${draft.text}\n\n--- Polished ---\n\n${draft.refinedText || draft.text}`;
+    downloadTextFile(content, `polished-${draft.title || 'draft'}-${formatDate()}.txt`);
   };
 
-  const handleReEdit = (draft) => {
-    onRefine(draft);
-  };
+  const handleReEdit = (draft) => onRefine(draft);
 
-  const handleMoveBack = (id) => {
-    updateDraft(id, { refined: false });
-    refresh();
-  };
+  const handleMoveBack = (id) => { updateDraft(id, { refined: false }); refresh(); };
 
   const handleDelete = (id) => {
     if (!confirm('Delete this finished piece? This cannot be undone.')) return;
-    deleteDraft(id);
-    refresh();
+    deleteDraft(id); refresh();
   };
 
   const getPreview = (text) => {
@@ -69,7 +58,9 @@ export default function DonePage({ onNavigate, onRefine }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#F8F0E0', color: '#5C4A32',
+      minHeight: '100vh',
+      background: 'linear-gradient(180deg, #FBF0D0 0%, #F5E6C0 50%, #F0DDB0 100%)',
+      color: '#5C4A32',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
       padding: '0 20px 60px',
@@ -77,20 +68,13 @@ export default function DonePage({ onNavigate, onRefine }) {
       {/* Top bar */}
       <div style={{
         width: '100%', maxWidth: 750, display: 'flex', justifyContent: 'space-between',
-        alignItems: 'center', padding: '20px 0',
+        alignItems: 'center', padding: '20px 0', flexWrap: 'wrap', gap: 10,
       }}>
         <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={() => onNavigate('flow')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
-            borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-          }}>+ New Session</button>
-          <button onClick={() => onNavigate('gap')} style={{
-            padding: '6px 12px', fontSize: 11, border: '1px solid #D4C4A8',
-            borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
-          }}>← Drafts/Stop</button>
+          <NavBar currentPage="done" onNavigate={onNavigate} />
           {user ? (
             <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #D4943A' }}>
               {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} /> : (
@@ -98,31 +82,37 @@ export default function DonePage({ onNavigate, onRefine }) {
               )}
             </div>
           ) : (
-            <button onClick={login} style={{
-              padding: '6px 12px', fontSize: 11, border: 'none', borderRadius: 8,
-              background: '#D4943A', color: '#FFF', cursor: 'pointer', fontWeight: 600,
-            }}>Sign in</button>
+            <button onClick={login} style={{ padding: '6px 12px', fontSize: 11, border: 'none', borderRadius: 8, background: '#D4943A', color: '#FFF', cursor: 'pointer', fontWeight: 600 }}>Sign in</button>
           )}
         </div>
       </div>
 
-      {/* Page title */}
+      {/* Page title — golden and shiny */}
       <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 30 }}>
         <div style={{
-          fontSize: 28, fontWeight: 700, color: '#D4943A',
+          fontSize: 32, fontWeight: 700, color: '#D4943A',
           fontFamily: "'Source Serif 4', serif",
-          textShadow: '0 0 14px rgba(212,148,58,0.5), 0 0 28px rgba(212,148,58,0.25)',
-        }}>✭ Finished Pieces</div>
-        <p style={{ fontSize: 13, color: '#8B7B6B', marginTop: 8 }}>
+          textShadow: '0 0 16px rgba(212,148,58,0.6), 0 0 32px rgba(212,148,58,0.3), 0 0 60px rgba(212,148,58,0.15)',
+        }}>✭ Polished</div>
+        <p style={{ fontSize: 14, color: '#8B7B6B', marginTop: 8, lineHeight: 1.5 }}>
           Your sharpened, completed work lives here.
+          <br /><span style={{ fontSize: 12, fontStyle: 'italic', opacity: 0.7 }}>(You can always re-edit these if needed)</span>
         </p>
       </div>
+
+      {/* Decorative gold line */}
+      <div style={{
+        width: '100%', maxWidth: 750, height: 2, marginBottom: 24,
+        background: 'linear-gradient(90deg, transparent 0%, #D4943A 30%, #E8C860 50%, #D4943A 70%, transparent 100%)',
+        borderRadius: 1, opacity: 0.5,
+      }} />
 
       {/* Content */}
       <div style={{ width: '100%', maxWidth: 750 }}>
         {drafts.length === 0 && (
           <div style={{ textAlign: 'center', padding: 40, opacity: 0.6 }}>
-            <p style={{ fontSize: 14 }}>No finished pieces yet.</p>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>✭</div>
+            <p style={{ fontSize: 14 }}>No polished pieces yet.</p>
             <p style={{ fontSize: 12, marginTop: 8 }}>
               Click "Finish & Save" on the Sharpen & Edit page to move a piece here.
             </p>
@@ -132,64 +122,66 @@ export default function DonePage({ onNavigate, onRefine }) {
         {Object.entries(grouped).map(([key, group]) => (
           <div key={key} style={{ marginBottom: 24 }}>
             <div style={{
-              fontSize: 18, fontWeight: 700, color: '#5C4A32', marginBottom: 10,
+              fontSize: 20, fontWeight: 700, color: '#5C4A32', marginBottom: 12,
               fontFamily: "'Source Serif 4', serif",
             }}>{group.name}</div>
 
             {group.drafts.map(draft => (
               <div key={draft.id} style={{
-                background: '#FDF6EC', borderRadius: 14, padding: '18px 22px', marginBottom: 10,
-                border: '2px solid #E8D5B0',
-                boxShadow: '0 2px 8px rgba(212,148,58,0.08)',
+                background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF8E8 100%)',
+                borderRadius: 14, padding: '20px 24px', marginBottom: 12,
+                border: '2px solid #E8D5A0',
+                boxShadow: '0 2px 12px rgba(212,148,58,0.1), 0 0 20px rgba(212,148,58,0.05)',
               }}>
                 {/* Title */}
                 {draft.title && (
                   <div style={{
-                    fontSize: 18, fontWeight: 700, color: '#2D8B5A', marginBottom: 6,
+                    fontSize: 20, fontWeight: 700, color: '#2D8B5A', marginBottom: 8,
                     fontFamily: "'Source Serif 4', serif",
                   }}>{draft.title}</div>
                 )}
 
                 {/* Sharpened text preview */}
                 <div style={{
-                  fontSize: 14, color: '#5C4A32', lineHeight: 1.6, marginBottom: 10,
+                  fontSize: 15, color: '#5C4A32', lineHeight: 1.7, marginBottom: 12,
                   fontFamily: "'Source Serif 4', serif",
                 }}>{getPreview(draft.refinedText || draft.text)}</div>
 
                 {/* Stats */}
-                <div style={{ fontSize: 11, color: '#8B7B6B', marginBottom: 12, display: 'flex', gap: 12 }}>
+                <div style={{ fontSize: 11, color: '#8B7B6B', marginBottom: 14, display: 'flex', gap: 16 }}>
                   <span>Original: {draft.wordCount} words</span>
-                  <span>Final: {(draft.refinedText || draft.text).trim().split(/\s+/).length} words</span>
+                  <span>Polished: {(draft.refinedText || draft.text).trim().split(/\s+/).length} words</span>
                   <span>{new Date(draft.createdAt).toLocaleDateString()}</span>
                 </div>
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button onClick={() => handleCopy(draft.refinedText || draft.text, draft.id)} style={{
-                    padding: '6px 14px', fontSize: 11, fontWeight: 600,
+                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
                     background: '#D4943A', color: '#FFF', border: 'none',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>{copiedId === draft.id ? 'Copied!' : 'Copy Text'}</button>
+                    boxShadow: '0 2px 8px rgba(212,148,58,0.25)',
+                  }}>{copiedId === draft.id ? 'Copied!' : '📋 Copy Text'}</button>
                   <button onClick={() => handleDownload(draft)} style={{
-                    padding: '6px 14px', fontSize: 11, fontWeight: 600,
-                    background: 'transparent', color: '#D4943A', border: '1px solid #D4943A',
+                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                    background: 'transparent', color: '#D4943A', border: '1.5px solid #D4943A',
                     borderRadius: 8, cursor: 'pointer',
                   }}>↓ Download</button>
                   <button onClick={() => handleReEdit(draft)} style={{
-                    padding: '6px 14px', fontSize: 11, fontWeight: 600,
-                    background: 'transparent', color: '#A8B4C4', border: '1px solid #A8B4C4',
+                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                    background: 'transparent', color: '#5A8F6A', border: '1.5px solid #5A8F6A',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>Re-edit</button>
+                  }}>✏️ Re-edit</button>
                   <button onClick={() => handleMoveBack(draft.id)} style={{
-                    padding: '6px 14px', fontSize: 11,
+                    padding: '7px 16px', fontSize: 11,
                     background: 'transparent', color: '#8B7B6B', border: '1px solid #D4C4A8',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>Move back to Drafts</button>
+                  }}>↩ Back to Drafts</button>
                   <button onClick={() => handleDelete(draft.id)} style={{
-                    padding: '6px 14px', fontSize: 11,
+                    padding: '7px 16px', fontSize: 11,
                     background: 'transparent', color: '#C0392B', border: '1px solid #C0392B',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>Delete</button>
+                  }}>× Delete</button>
                 </div>
               </div>
             ))}
