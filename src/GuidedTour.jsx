@@ -80,7 +80,6 @@ const STEPS = [
     action: 'Look around, then click Next.',
     waitFor: 'next',
     page: 'refine',
-    position: 'top',
   },
   {
     title: 'Save Progress & Continue Later',
@@ -90,7 +89,6 @@ const STEPS = [
     page: 'refine',
     highlightText: ['Save & Back'],
     blockOtherButtons: true,
-    position: 'top',
   },
   {
     title: 'Back on Drafts — Your Work is Saved',
@@ -106,7 +104,6 @@ const STEPS = [
     waitFor: 'leaveRefine',
     page: 'refine',
     highlightText: ['Finish & Save'],
-    position: 'top',
     blockOtherButtons: true,
   },
   {
@@ -276,18 +273,15 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
 
   const handleSkip = () => { clearTour(); onEnd(); };
 
-  const pos = current.position;
+  const isCentered = current.position === 'center';
   const showNext = current.waitFor === 'next' || current.waitFor === 'finish' || current.waitFor === 'sessionEnd' || current.waitFor === 'savedDraft' || current.waitFor === 'leaveRefine';
 
   return (
     <div style={{
       position: 'fixed',
-      left: '50%',
-      ...(pos === 'center' ? { top: '50%', transform: 'translate(-50%, -50%)' }
-        : pos === 'top' ? { top: 16, transform: 'translateX(-50%)' }
-        : { bottom: 16, transform: 'translateX(-50%)' }),
-      zIndex: 900, maxWidth: 560, width: '90%',
-      background: '#FDF6EC', borderRadius: 16, padding: '22px 26px',
+      ...(isCentered ? { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' } : { bottom: 20, left: '50%', transform: 'translateX(-50%)' }),
+      zIndex: 900, maxWidth: 500, width: '90%',
+      background: '#FDF6EC', borderRadius: 16, padding: '20px 24px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 2px #D4943A',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
     }}>
@@ -299,24 +293,24 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       `}</style>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <span style={{ fontSize: 15, fontWeight: 700, color: '#D4943A', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#D4943A', letterSpacing: '1px', textTransform: 'uppercase' }}>
           Step {step + 1} of {STEPS.length}
         </span>
         <button onClick={handleSkip} style={{
           background: 'none', border: 'none', color: '#8B7B6B',
-          fontSize: 15, cursor: 'pointer', textDecoration: 'underline',
+          fontSize: 11, cursor: 'pointer', textDecoration: 'underline',
         }}>Skip Tour</button>
       </div>
 
-      <div style={{ height: 4, background: '#EDE5D4', borderRadius: 2, marginBottom: 14 }}>
+      <div style={{ height: 3, background: '#EDE5D4', borderRadius: 2, marginBottom: 14 }}>
         <div style={{ height: '100%', background: '#D4943A', borderRadius: 2, width: `${((step + 1) / STEPS.length) * 100}%`, transition: 'width 0.3s ease' }} />
       </div>
 
-      <h3 style={{ fontSize: 22, fontWeight: 700, color: '#5C4A32', marginBottom: 8, fontFamily: "'Source Serif 4', serif" }}>{current.title}</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, color: '#5C4A32', marginBottom: 6, fontFamily: "'Source Serif 4', serif" }}>{current.title}</h3>
       {current.bodyJsx ? (
-        <div style={{ fontSize: 17, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>
           <p>That's the</p>
-          <p style={{ fontSize: 24, fontWeight: 700, margin: '8px 0', lineHeight: 1.4 }}>
+          <p style={{ fontSize: 18, fontWeight: 700, margin: '8px 0', lineHeight: 1.4 }}>
             <span style={{ color: '#A8B4C4', textShadow: '0 0 10px rgba(168,180,196,0.5)' }}>Draft</span>
             {', '}
             <span style={{ color: '#C0392B' }}>Stop</span>
@@ -328,23 +322,23 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
           <p style={{ marginTop: 8 }}>The best creative work happens in stages.</p>
         </div>
       ) : (
-        <p style={{ fontSize: 17, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 10 }}>{current.body}</p>
+        <p style={{ fontSize: 13, color: '#6B5D4A', lineHeight: 1.6, marginBottom: 8 }}>{current.body}</p>
       )}
-      <p style={{ fontSize: 16, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>👉 {current.action}</p>
+      <p style={{ fontSize: 12, color: '#D4943A', fontWeight: 600, marginBottom: 14 }}>👉 {current.action}</p>
 
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         {step > 0 && (
           <button onClick={handleBack} style={{
-            padding: '10px 20px', fontSize: 16, fontWeight: 600,
-            background: 'transparent', border: '1.5px solid #D4C4A8',
-            borderRadius: 10, color: '#8B7B6B', cursor: 'pointer',
+            padding: '8px 16px', fontSize: 12, fontWeight: 600,
+            background: 'transparent', border: '1px solid #D4C4A8',
+            borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',
           }}>← Back</button>
         )}
         {showNext && (
           <button onClick={handleNext} style={{
-            padding: '10px 24px', fontSize: 16, fontWeight: 700,
+            padding: '8px 20px', fontSize: 12, fontWeight: 700,
             background: '#D4943A', color: '#FFF', border: 'none',
-            borderRadius: 10, cursor: 'pointer',
+            borderRadius: 8, cursor: 'pointer',
           }}>{current.waitFor === 'finish' ? 'Finish Tour ✓' : 'Next →'}</button>
         )}
       </div>
