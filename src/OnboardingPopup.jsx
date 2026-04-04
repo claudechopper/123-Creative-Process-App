@@ -38,42 +38,42 @@ export default function OnboardingPopup({ onStartTour }) {
       zIndex: 1000, padding: 20,
     }} onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}>
       <div style={{
-        background: '#FDF6EC', borderRadius: 20, maxWidth: 750, width: '100%',
-        maxHeight: '90vh', overflowY: 'auto', padding: '44px 40px',
+        background: '#FDF6EC', borderRadius: 24, maxWidth: 900, width: '100%',
+        maxHeight: '92vh', overflowY: 'auto', padding: '50px 48px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         border: '2px solid #A8B4C4',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{
-            fontSize: 21, fontWeight: 600, color: '#5A8F6A',
-            letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 10,
+            fontSize: 28, fontWeight: 600, color: '#5A8F6A',
+            letterSpacing: '3px', textTransform: 'uppercase', marginBottom: 12,
           }}>Welcome to</div>
           <div style={{
-            fontSize: 42, fontWeight: 700,
-            letterSpacing: '-0.5px',
+            fontSize: 56, fontWeight: 700,
+            letterSpacing: '-1px',
           }}><span style={silverShimmer}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span></div>
         </div>
 
         {/* Section A: The Creative Process */}
         <div style={{
-          background: '#F5EDD8', borderRadius: 14, padding: '22px 24px',
-          marginBottom: 24,
+          background: '#F5EDD8', borderRadius: 18, padding: '32px 34px',
+          marginBottom: 30,
         }}>
           <h2 style={{
-            fontSize: 30, fontWeight: 700, color: '#5C4A32', marginBottom: 18,
+            fontSize: 38, fontWeight: 700, color: '#5C4A32', marginBottom: 22,
             fontFamily: "'Source Serif 4', serif",
           }}>The best writing happens in stages</h2>
 
-          <p style={{ fontSize: 21, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
+          <p style={{ fontSize: 26, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 20 }}>
             Your first draft should be a stream of consciousness — raw, unfiltered,
             forward moving. Get it all out. Then{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>Sharpening & Editing</span> it later,{' '}
             <span style={{ color: '#C0392B', fontWeight: 600 }}>after a period of rest</span>.
           </p>
 
-          <p style={{ fontSize: 21, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
+          <p style={{ fontSize: 26, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 20 }}>
             Hemingway was fabled to have said <strong>"Write intoxicated. Edit sober."</strong> —{' '}
             <span style={{ ...silverShimmer, fontWeight: 600 }}>raw creation first</span>,{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>sharp refinement</span> after.
@@ -81,7 +81,7 @@ export default function OnboardingPopup({ onStartTour }) {
             celebrated creators across every discipline all followed the same approach.
           </p>
 
-          <p style={{ fontSize: 21, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 14 }}>
+          <p style={{ fontSize: 26, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 20 }}>
             Why? Because{' '}
             <span style={{ ...silverShimmer, fontWeight: 600 }}>drafting</span> and{' '}
             <span style={{ color: '#D4943A', fontWeight: 600 }}>sharpening</span> are
@@ -92,7 +92,7 @@ export default function OnboardingPopup({ onStartTour }) {
             <strong style={{ color: '#C0392B' }}>after a period of rest.</strong>
           </p>
 
-          <p style={{ fontSize: 21, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 18 }}>
+          <p style={{ fontSize: 26, color: '#6B5D4A', lineHeight: 1.7, marginBottom: 24 }}>
             Also studies in <em>Frontiers in Human Neuroscience</em> show that your brain
             continues to solve problems subconsciously during{' '}
             <span style={{ color: '#C0392B', fontWeight: 600 }}>rest</span>.
@@ -106,7 +106,7 @@ export default function OnboardingPopup({ onStartTour }) {
           </p>
 
           <div style={{
-            fontSize: 23, fontWeight: 700, color: '#5C4A32', marginBottom: 16,
+            fontSize: 30, fontWeight: 700, color: '#5C4A32', marginBottom: 20,
           }}><span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span> <span style={{ color: '#D4943A' }}>& Sharpen</span> follows this proven process:</div>
 
           {[
@@ -115,18 +115,18 @@ export default function OnboardingPopup({ onStartTour }) {
             { num: '3', stage: 'SHARPEN:', label: 'Refine', desc: 'Return with fresh eyes. Edit, cut, shape, and polish.', color: '#D4943A' },
           ].map(step => (
             <div key={step.num} style={{
-              display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10,
+              display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16,
             }}>
               <div style={{
-                width: 40, height: 40, borderRadius: '50%', background: step.color,
+                width: 52, height: 52, borderRadius: '50%', background: step.color,
                 color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 20, fontWeight: 700, flexShrink: 0,
+                fontSize: 26, fontWeight: 700, flexShrink: 0,
                 textShadow: step.num === '1' ? '0 0 8px rgba(168,180,196,0.5)' : step.num === '2' ? '0 0 8px rgba(192,57,43,0.5)' : '0 0 8px rgba(212,148,58,0.5)',
               }}>{step.num}</div>
-              <div>
-                <span style={{ fontWeight: 800, color: step.color, fontSize: 20, letterSpacing: '0.5px', textShadow: step.num === '1' ? silverShimmer.textShadow : 'none' }}>{step.stage}</span>
-                {' '}<span style={{ fontWeight: 700, color: '#5C4A32', fontSize: 20 }}>{step.label}</span>
-                <span style={{ color: '#6B5D4A', fontSize: 19 }}> — {step.desc}</span>
+              <div style={{ paddingTop: 6 }}>
+                <span style={{ fontWeight: 800, color: step.color, fontSize: 28, letterSpacing: '0.5px', textShadow: step.num === '1' ? silverShimmer.textShadow : 'none' }}>{step.stage}</span>
+                {' '}<span style={{ fontWeight: 700, color: '#5C4A32', fontSize: 28 }}>{step.label}</span>
+                <span style={{ color: '#6B5D4A', fontSize: 24 }}> — {step.desc}</span>
               </div>
             </div>
           ))}
@@ -135,17 +135,17 @@ export default function OnboardingPopup({ onStartTour }) {
         {/* AI Refine callout */}
         <div style={{
           background: 'linear-gradient(135deg, #A8B4C4 0%, #BEC8D6 50%, #A8B4C4 100%)',
-          borderRadius: 14, padding: '18px 24px',
-          marginBottom: 24, textAlign: 'center',
+          borderRadius: 18, padding: '24px 32px',
+          marginBottom: 30, textAlign: 'center',
           boxShadow: '0 4px 16px rgba(168,180,196,0.4), 0 0 20px rgba(168,180,196,0.15)',
         }}>
           <div style={{
-            fontSize: 24, fontWeight: 800, color: '#FFF', lineHeight: 1.5,
+            fontSize: 30, fontWeight: 800, color: '#FFF', lineHeight: 1.5,
           }}>
             Got tons of AI-generated text? You can <span style={{ color: '#D4943A' }}>Sharpen</span> it with our process too.
           </div>
           <div style={{
-            fontSize: 19, color: 'rgba(255,255,255,0.85)', marginTop: 8, lineHeight: 1.5,
+            fontSize: 24, color: 'rgba(255,255,255,0.85)', marginTop: 10, lineHeight: 1.5,
           }}>
             Break up your AI drafts, drop them in, and edit side-by-side with your final version.
             Make AI output truly yours.
@@ -154,29 +154,29 @@ export default function OnboardingPopup({ onStartTour }) {
 
         {/* Three buttons row */}
         <div style={{
-          display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 24,
+          display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 24,
           flexWrap: 'wrap',
         }}>
           <button onClick={dismiss} style={{
-            padding: '18px 28px', fontSize: 21, fontWeight: 700, flex: 1, minWidth: 160,
+            padding: '22px 32px', fontSize: 26, fontWeight: 700, flex: 1, minWidth: 180,
             background: 'linear-gradient(135deg, #A8B4C4 0%, #BEC8D6 50%, #A8B4C4 100%)',
             color: '#FFF', border: 'none',
-            borderRadius: 12, cursor: 'pointer',
+            borderRadius: 14, cursor: 'pointer',
             boxShadow: '0 4px 16px rgba(168,180,196,0.5), 0 0 20px rgba(168,180,196,0.2)',
             textShadow: '0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
           }}>Got it, let's write</button>
           <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer" style={{
-            padding: '18px 28px', fontSize: 21, fontWeight: 700, flex: 1, minWidth: 160,
+            padding: '22px 32px', fontSize: 26, fontWeight: 700, flex: 1, minWidth: 180,
             background: '#D4943A', color: '#FFF', border: 'none',
-            borderRadius: 12, cursor: 'pointer', textDecoration: 'none',
+            borderRadius: 14, cursor: 'pointer', textDecoration: 'none',
             textAlign: 'center',
             boxShadow: '0 4px 16px rgba(212,148,58,0.4), 0 0 20px rgba(212,148,58,0.2)',
             textShadow: '0 0 10px rgba(212,148,58,0.6), 0 0 20px rgba(212,148,58,0.3)',
           }}>▶ Watch Video</a>
           <button onClick={startTour} style={{
-            padding: '18px 28px', fontSize: 21, fontWeight: 700, flex: 1, minWidth: 160,
+            padding: '22px 32px', fontSize: 26, fontWeight: 700, flex: 1, minWidth: 180,
             background: '#D4943A', color: '#FFF', border: 'none',
-            borderRadius: 12, cursor: 'pointer',
+            borderRadius: 14, cursor: 'pointer',
             boxShadow: '0 4px 16px rgba(212,148,58,0.4), 0 0 20px rgba(212,148,58,0.2)',
             textShadow: '0 0 10px rgba(212,148,58,0.6), 0 0 20px rgba(212,148,58,0.3)',
           }}>Take the Tour</button>
