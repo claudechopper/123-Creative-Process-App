@@ -188,7 +188,7 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
         width: '100%', maxWidth: 900, display: 'flex', justifyContent: 'space-between',
         alignItems: 'flex-start', padding: '20px 0',
       }}>
-        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
+        <div onClick={() => onNavigate('flow')} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
           <span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
 

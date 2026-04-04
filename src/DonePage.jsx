@@ -74,7 +74,7 @@ export default function DonePage({ onNavigate, onRefine }) {
         width: '100%', maxWidth: 750, display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', padding: '20px 0', flexWrap: 'wrap', gap: 10,
       }}>
-        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>
+        <div onClick={() => onNavigate('flow')} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
