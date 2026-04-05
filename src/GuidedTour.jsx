@@ -9,7 +9,6 @@ const STEPS = [
     waitFor: 'timePicker',
     page: 'flow',
     highlightText: ['Continue without signing in', 'Start Session'],
-    position: 'top',
   },
   {
     title: 'Pick a Duration',
@@ -284,8 +283,8 @@ export default function GuidedTour({ sessionActive, hasText, showTimePicker, sho
       ...(pos === 'center' ? { top: '50%', transform: 'translate(-50%, -50%)' }
         : pos === 'top' ? { top: 20, transform: 'translateX(-50%)' }
         : { bottom: 20, transform: 'translateX(-50%)' }),
-      zIndex: 900, maxWidth: 500, width: '90%',
-      background: '#FDF6EC', borderRadius: 16, padding: '20px 24px',
+      zIndex: 900, maxWidth: 420, width: '90%',
+      background: '#FDF6EC', borderRadius: 14, padding: '14px 18px',
       boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 2px #D4943A',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
     }}>
