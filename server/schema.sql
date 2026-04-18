@@ -47,3 +47,18 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_chat_messages_user_project ON chat_messages(user_id, project_id);
+
+-- Per-IP anon spend tracking (defense-in-depth for unauthenticated users)
+CREATE TABLE IF NOT EXISTS anon_spend (
+  ip_hash VARCHAR(64) NOT NULL,
+  day DATE NOT NULL,
+  cents_spent INTEGER NOT NULL DEFAULT 0,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (ip_hash, day)
+);
+
+-- Global daily AI spend ceiling (the kill switch)
+CREATE TABLE IF NOT EXISTS ai_daily_budget (
+  day DATE PRIMARY KEY,
+  cents_spent INTEGER NOT NULL DEFAULT 0
+);
