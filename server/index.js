@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
@@ -10,6 +11,7 @@ import { dirname, join } from 'path';
 import pool, { query } from './db.js';
 import authRoutes from './routes/auth.js';
 import apiRoutes from './routes/api.js';
+import chatRoutes from './routes/chat.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -77,6 +79,7 @@ passport.deserializeUser(async (id, done) => {
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api', apiRoutes);
 
 // Serve static frontend

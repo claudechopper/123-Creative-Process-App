@@ -9,6 +9,7 @@ const STEPS = [
     waitFor: 'timePicker',
     page: 'flow',
     highlightText: ['Continue without signing in', 'Start Session'],
+    position: 'top',
   },
   {
     title: 'Pick a Duration',
@@ -17,6 +18,7 @@ const STEPS = [
     waitFor: 'sessionStart',
     page: 'flow',
     highlightText: ['5 min'],
+    position: 'top',
   },
   {
     title: 'Start Writing!',
@@ -57,6 +59,7 @@ const STEPS = [
     waitFor: 'next',
     page: 'flow',
     highlightText: ['Save as New'],
+    position: 'bottom',
   },
   {
     title: '🌙 The Drafts/Stop Page',
@@ -64,6 +67,7 @@ const STEPS = [
     action: 'Click Next to continue.',
     waitFor: 'next',
     page: 'gap',
+    position: 'top',
   },
   {
     title: '⏳ The 12-Hour Incubation',
@@ -72,7 +76,7 @@ const STEPS = [
     waitFor: 'next',
     page: 'gap',
     highlightText: ['Ready to sharpen', 'Override'],
-    position: 'center',
+    position: 'top',
   },
   {
     title: '✏️ The Sharpen & Edit Page',

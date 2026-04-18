@@ -2,9 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { groupDraftsByProject, updateDraft, deleteDraft, addDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, deleteProject, moveDraftToProject, reorderDrafts } from './storage';
 import NavBar from './NavBar';
+import useIsMobile from './useIsMobile';
+
+const GAP_QUOTES = [
+  { text: "Put your manuscript in a drawer for at least six weeks. When you take it out, you'll see it with fresh eyes.", author: "Stephen King" },
+  { text: "Put it in a drawer and forget about it. Then, after a few weeks, take it out and pretend you've never read it before.", author: "Neil Gaiman" },
+  { text: "Longer gaps correlate with better editing. Let it breathe.", author: "The Method" },
+  { text: "By the time I'm nearing the end of a story, the first part will have been reread and altered at least 150 times.", author: "Roald Dahl" },
+  { text: "Almost everything will work again if you unplug it for a few minutes — including you.", author: "Anne Lamott" },
+  { text: "Leonardo da Vinci spent years returning to the Mona Lisa — each time with new eyes and new technique.", author: "Art History" },
+];
 
 export default function GapMode({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
+  const isMobile = useIsMobile();
   const [groups, setGroups] = useState(() => {
     const all = groupDraftsByProject();
     return all.map(g => ({ ...g, drafts: g.drafts.filter(d => !d.refined) })).filter(g => g.drafts.length > 0 || g.project.id !== 'uncategorized');
@@ -26,6 +37,12 @@ export default function GapMode({ onNavigate, onRefine }) {
   const [newDraftText, setNewDraftText] = useState('');
   const [editingTitleId, setEditingTitleId] = useState(null);
   const [editingTitleText, setEditingTitleText] = useState('');
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setQuoteIndex(i => (i + 1) % GAP_QUOTES.length), 24000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -240,9 +257,10 @@ export default function GapMode({ onNavigate, onRefine }) {
       {/* Top bar */}
       <div style={{
         width: '100%', maxWidth: 700, display: 'flex', justifyContent: 'space-between',
-        alignItems: 'center', padding: '20px 0',
+        alignItems: 'center', padding: isMobile ? '12px 0' : '20px 0',
+        flexWrap: 'wrap', gap: 8,
       }}>
-        <div onClick={() => onNavigate('flow')} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
+        <div onClick={() => onNavigate('flow')} style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5E3A38' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -283,10 +301,15 @@ export default function GapMode({ onNavigate, onRefine }) {
       {/* Center content */}
       <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 24, opacity: 0.5 }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🌙</div>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8 }}>YOUR DRAFTS ARE INCUBATING</div>
-        <p style={{ fontSize: 13, maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
-          Longer gaps correlate with better editing. Let it breathe.
-        </p>
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 12 }}>YOUR DRAFTS ARE INCUBATING</div>
+        <div style={{ maxWidth: 420, margin: '0 auto', minHeight: 64, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <p style={{ fontStyle: 'italic', fontSize: 13, margin: 0, lineHeight: 1.7, textAlign: 'center' }}>
+            "{GAP_QUOTES[quoteIndex].text}"
+          </p>
+          <span style={{ fontSize: 10, letterSpacing: '0.5px', marginTop: 6, textTransform: 'uppercase' }}>
+            — {GAP_QUOTES[quoteIndex].author}
+          </span>
+        </div>
       </div>
 
       {/* Drafts list — grouped by project */}

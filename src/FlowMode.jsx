@@ -3,8 +3,19 @@ import { useAuth } from './AuthContext';
 import { addDraft, addProject, loadProjects, loadActiveDrafts, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
+import AIChatPanel from './AIChatPanel';
 import NavBar from './NavBar';
+import useIsMobile from './useIsMobile';
 const TIMER_OPTIONS = [5, 10, 15, 20, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
+
+const DRAFT_QUOTES = [
+  { text: "The first draft of anything is shit.", author: "Ernest Hemingway" },
+  { text: "Almost all good writing begins with terrible first efforts.", author: "Anne Lamott" },
+  { text: "You can't think yourself out of a writing block; you have to write yourself out of a thinking block.", author: "John Rogers" },
+  { text: "Start writing, no matter what. The water does not flow until the faucet is turned on.", author: "Louis L'Amour" },
+  { text: "Write drunk, edit sober.", author: "Peter De Vries" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+];
 const FAUCET_TARGET = 500;
 
 const silverShimmer = {
@@ -14,6 +25,7 @@ const silverShimmer = {
 
 export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour, onTourEnd, onTourState }) {
   const { user, login } = useAuth();
+  const isMobile = useIsMobile();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
   const [timerMinutes, setTimerMinutes] = useState(null);
@@ -28,6 +40,13 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
   const textareaRef = useRef(null);
   const timerRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setQuoteIndex(i => (i + 1) % DRAFT_QUOTES.length), 24000);
+    return () => clearInterval(id);
+  }, []);
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const faucetFill = Math.min(1, wordCount / FAUCET_TARGET);
@@ -186,13 +205,14 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
       {/* Top bar */}
       <div style={{
         width: '100%', maxWidth: 900, display: 'flex', justifyContent: 'space-between',
-        alignItems: 'flex-start', padding: '20px 0',
+        alignItems: 'flex-start', padding: isMobile ? '12px 0' : '20px 0',
+        flexWrap: 'wrap', gap: 8,
       }}>
-        <div onClick={() => onNavigate('flow')} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
+        <div onClick={() => onNavigate('flow')} style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
           <span style={silverShimmer}>Draft</span>, <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: isMobile ? 6 : 16, flexWrap: 'wrap' }}>
           {sessionActive && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ display: 'flex', background: '#EDE5D4', borderRadius: 20, padding: 3 }}>
@@ -292,12 +312,21 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
           {!sessionActive ? (
             <div style={{ textAlign: 'center', marginTop: 20 }}>
               <h1 style={{
-                fontFamily: "'Source Serif 4', serif", fontSize: 36, fontWeight: 400,
+                fontFamily: "'Source Serif 4', serif", fontSize: isMobile ? 26 : 36, fontWeight: 400,
                 color: '#5C4A32', marginBottom: 12, letterSpacing: '-0.5px',
               }}>Just Get it all out.</h1>
-              <p style={{ color: '#8B7B6B', fontSize: 16, marginBottom: 30 }}>
+              <p style={{ color: '#8B7B6B', fontSize: 16, marginBottom: 20 }}>
                 Write forward — momentum first, sharpen later.
               </p>
+
+              <div style={{ maxWidth: 420, margin: '0 auto 28px', minHeight: 64, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ fontFamily: "'Source Serif 4', serif", fontStyle: 'italic', fontSize: 15, color: '#8B7B6B', opacity: 0.7, margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
+                  "{DRAFT_QUOTES[quoteIndex].text}"
+                </p>
+                <span style={{ fontSize: 11, color: '#B8A898', letterSpacing: '0.5px', marginTop: 6, textTransform: 'uppercase' }}>
+                  — {DRAFT_QUOTES[quoteIndex].author}
+                </span>
+              </div>
 
               {!user && (
                 <div style={{
@@ -388,16 +417,22 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
 
       {sessionActive && (
         <div style={{
-          display: 'flex', gap: 12, marginTop: 16, alignItems: 'center',
-          paddingBottom: 10,
+          display: 'flex', gap: isMobile ? 6 : 12, marginTop: 16, alignItems: 'center',
+          paddingBottom: 10, flexWrap: 'wrap', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 13, color: '#8B7B6B' }}>{wordCount} words</span>
+          <span style={{ fontSize: isMobile ? 11 : 13, color: '#8B7B6B' }}>{wordCount} words</span>
+          <button onClick={() => setShowAIChat(s => !s)} style={{
+            padding: isMobile ? '8px 10px' : '10px 16px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
+            background: showAIChat ? '#D4943A' : 'transparent',
+            color: showAIChat ? '#FFF' : '#D4943A',
+            border: '1px solid #D4943A', borderRadius: 8, cursor: 'pointer',
+          }}>✨ Coach</button>
           <button onClick={showSave} style={{
-            padding: '10px 24px', fontSize: 13, fontWeight: 600,
+            padding: isMobile ? '8px 12px' : '10px 24px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
             background: '#A8B4C4', color: '#FFF', border: 'none',
             borderRadius: 8, cursor: 'pointer',
             textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-          }}>Finish Session & Save to Browser</button>
+          }}>{isMobile ? 'Finish & Save' : 'Finish Session & Save to Browser'}</button>
           <button onClick={() => {
             if (confirm('Delete this draft? The text will be lost.')) {
               clearInterval(timerRef.current);
@@ -407,12 +442,12 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
               lastLengthRef.current = 0;
             }
           }} style={{
-            padding: '10px 24px', fontSize: 13, fontWeight: 600,
+            padding: isMobile ? '8px 10px' : '10px 24px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
             background: 'transparent', color: '#1A1A1A', border: '1px solid #1A1A1A',
             borderRadius: 8, cursor: 'pointer',
-          }}>Delete Draft</button>
+          }}>{isMobile ? 'Delete' : 'Delete Draft'}</button>
           <button onClick={startNewSession} style={{
-            padding: '10px 24px', fontSize: 13, border: '1px solid #D4C4A8',
+            padding: isMobile ? '8px 10px' : '10px 24px', fontSize: isMobile ? 11 : 13, border: '1px solid #D4C4A8',
             borderRadius: 8, background: 'transparent', color: '#8B7B6B', cursor: 'pointer',
           }}>Start New</button>
         </div>
@@ -434,7 +469,7 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
               Pick a duration and start writing.
             </p>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+              display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gap: 8,
             }}>
               {TIMER_OPTIONS.map(m => (
                 <button key={m} onClick={() => startSessionWithTime(m)} style={{
@@ -462,7 +497,10 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
           }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#5C4A32', marginBottom: 6 }}>Save Draft</h3>
-            <p style={{ fontSize: 12, color: '#8B7B6B', marginBottom: 20 }}>{wordCount} words</p>
+            <p style={{ fontSize: 12, color: '#8B7B6B', marginBottom: 6 }}>{wordCount} words</p>
+            <p style={{ fontSize: 12, color: '#A8B4C4', marginBottom: 16, fontStyle: 'italic', lineHeight: 1.5 }}>
+              ✨ Don't worry about perfection — you can always add more and sharpen it later.
+            </p>
 
             <button onClick={() => saveAndClose(null)} style={{
               width: '100%', padding: '12px', fontSize: 14, fontWeight: 600,
@@ -545,7 +583,7 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
               Or add more time:
             </div>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
+              display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gap: 8,
             }}>
               {TIMER_OPTIONS.map(m => (
                 <button key={m} onClick={() => addMoreTime(m)} style={{
@@ -564,6 +602,29 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
       )}
 
       {showTips && <TipsPanel mode="flow" onClose={() => setShowTips(false)} onInsertTip={handleInsertTip} />}
+
+      {/* Writing Coach — floating panel bottom-right during session */}
+      {showAIChat && sessionActive && (
+        <div style={{
+          position: 'fixed', bottom: isMobile ? 60 : 80,
+          right: isMobile ? 8 : 24,
+          left: isMobile ? 8 : 'auto',
+          width: isMobile ? 'auto' : 360, zIndex: 300,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          borderRadius: 12, overflow: 'hidden',
+        }}>
+          <AIChatPanel
+            theme={{
+              panel: '#FDF6EC', panelBorder: '#EDE5D4', text: '#5C4A32',
+              mutedText: '#B8A898', statBg: '#F5EDD8', statBorder: '#EDE5D4',
+            }}
+            projectDrafts={[]}
+            projectId={null}
+            onClose={() => setShowAIChat(false)}
+            isAnon={!user}
+          />
+        </div>
+      )}
     </div>
   );
 }

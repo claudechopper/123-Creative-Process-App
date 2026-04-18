@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useIsMobile from './useIsMobile';
 
 const ONBOARDED_KEY = 'twomodes_onboarded';
 const TOUR_KEY = 'twomodes_tour_active';
@@ -10,6 +11,7 @@ const silverShimmer = {
 
 export default function OnboardingPopup({ onStartTour }) {
   const [show, setShow] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!localStorage.getItem(ONBOARDED_KEY)) {
@@ -34,12 +36,15 @@ export default function OnboardingPopup({ onStartTour }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000, padding: 20,
+      display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center',
+      zIndex: 1000, padding: isMobile ? 8 : 20,
+      overflowY: isMobile ? 'auto' : 'visible',
     }} onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}>
       <div style={{
-        background: '#FDF6EC', borderRadius: 18, maxWidth: 580, width: '100%',
-        maxHeight: '90vh', overflowY: 'auto', padding: '28px 26px',
+        background: '#FDF6EC', borderRadius: isMobile ? 12 : 18, maxWidth: 580, width: '100%',
+        maxHeight: isMobile ? 'none' : '90vh', overflowY: isMobile ? 'visible' : 'auto',
+        padding: isMobile ? '20px 16px' : '28px 26px',
+        margin: isMobile ? '8px 0 40px' : 0,
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         border: '2px solid #A8B4C4',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -51,7 +56,7 @@ export default function OnboardingPopup({ onStartTour }) {
             letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 6,
           }}>Welcome to</div>
           <div style={{
-            fontSize: 28, fontWeight: 700,
+            fontSize: isMobile ? 22 : 28, fontWeight: 700,
             letterSpacing: '-0.5px',
           }}><span style={silverShimmer}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A' }}>&nbsp;& Sharpen</span></div>
         </div>

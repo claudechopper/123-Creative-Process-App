@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { loadDoneDrafts, loadProjects, updateDraft, deleteDraft, downloadTextFile, formatDate } from './storage';
 import NavBar from './NavBar';
+import useIsMobile from './useIsMobile';
 
 export default function DonePage({ onNavigate, onRefine }) {
   const { user, login } = useAuth();
@@ -9,6 +10,7 @@ export default function DonePage({ onNavigate, onRefine }) {
   const [copiedId, setCopiedId] = useState(null);
   const [viewingDraft, setViewingDraft] = useState(null);
   const copiedTimeout = useRef(null);
+  const isMobile = useIsMobile();
 
   const refresh = useCallback(() => setDrafts(loadDoneDrafts()), []);
 
@@ -67,14 +69,14 @@ export default function DonePage({ onNavigate, onRefine }) {
       color: '#5C4A32',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      padding: '0 20px 60px',
+      padding: isMobile ? '0 10px 60px' : '0 20px 60px',
     }}>
       {/* Top bar */}
       <div style={{
         width: '100%', maxWidth: 750, display: 'flex', justifyContent: 'space-between',
         alignItems: 'center', padding: '20px 0', flexWrap: 'wrap', gap: 10,
       }}>
-        <div onClick={() => onNavigate('flow')} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
+        <div onClick={() => onNavigate('flow')} style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
           <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#5C4A32' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -100,7 +102,7 @@ export default function DonePage({ onNavigate, onRefine }) {
       {/* Page title — golden and shiny */}
       <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 30 }}>
         <div style={{
-          fontSize: 34, fontWeight: 700, color: '#D4943A',
+          fontSize: isMobile ? 24 : 34, fontWeight: 700, color: '#D4943A',
           fontFamily: "'Source Serif 4', serif",
           textShadow: '0 0 20px rgba(212,148,58,0.8), 0 0 40px rgba(212,148,58,0.5), 0 0 70px rgba(212,148,58,0.25), 0 0 100px rgba(212,148,58,0.1)',
         }}>✭ Finished Works</div>
@@ -139,7 +141,7 @@ export default function DonePage({ onNavigate, onRefine }) {
             {group.drafts.map(draft => (
               <div key={draft.id} style={{
                 background: 'linear-gradient(135deg, #FFFDF5 0%, #FFF8E8 50%, #FFFDF5 100%)',
-                borderRadius: 14, padding: '20px 24px', marginBottom: 12,
+                borderRadius: isMobile ? 10 : 14, padding: isMobile ? '14px 14px' : '20px 24px', marginBottom: 12,
                 border: '2px solid #D4943A',
                 boxShadow: '0 2px 16px rgba(212,148,58,0.15), 0 0 30px rgba(212,148,58,0.08), 0 0 0 1px rgba(212,148,58,0.1)',
               }}>
@@ -158,45 +160,45 @@ export default function DonePage({ onNavigate, onRefine }) {
                 }}>{getPreview(draft.refinedText || draft.text)}</div>
 
                 {/* Stats */}
-                <div style={{ fontSize: 11, color: '#8B7B6B', marginBottom: 14, display: 'flex', gap: 16 }}>
+                <div style={{ fontSize: isMobile ? 10 : 11, color: '#8B7B6B', marginBottom: 14, display: 'flex', gap: isMobile ? 8 : 16, flexWrap: 'wrap' }}>
                   <span>Original: {draft.wordCount} words</span>
                   <span>Polished: {(draft.refinedText || draft.text).trim().split(/\s+/).length} words</span>
                   <span>{new Date(draft.createdAt).toLocaleDateString()}</span>
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap' }}>
                   <button onClick={() => setViewingDraft(draft)} style={{
-                    padding: '7px 16px', fontSize: 11, fontWeight: 700,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11, fontWeight: 700,
                     background: 'linear-gradient(135deg, #D4943A 0%, #E8B860 50%, #D4943A 100%)',
                     color: '#FFF', border: 'none',
                     borderRadius: 8, cursor: 'pointer',
                     boxShadow: '0 2px 12px rgba(212,148,58,0.4), 0 0 20px rgba(212,148,58,0.15)',
                     textShadow: '0 0 10px rgba(255,255,255,0.5)',
-                  }}>📄 See Finished Product</button>
+                  }}>{isMobile ? '📄 View' : '📄 See Finished Product'}</button>
                   <button onClick={() => handleCopy(draft.refinedText || draft.text, draft.id)} style={{
-                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11, fontWeight: 600,
                     background: '#D4943A', color: '#FFF', border: 'none',
                     borderRadius: 8, cursor: 'pointer',
                     boxShadow: '0 2px 8px rgba(212,148,58,0.25)',
-                  }}>{copiedId === draft.id ? 'Copied!' : '📋 Copy Text'}</button>
+                  }}>{copiedId === draft.id ? 'Copied!' : '📋 Copy'}</button>
                   <button onClick={() => handleDownload(draft)} style={{
-                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11, fontWeight: 600,
                     background: 'transparent', color: '#D4943A', border: '1.5px solid #D4943A',
                     borderRadius: 8, cursor: 'pointer',
                   }}>↓ Download</button>
                   <button onClick={() => handleReEdit(draft)} style={{
-                    padding: '7px 16px', fontSize: 11, fontWeight: 600,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11, fontWeight: 600,
                     background: 'transparent', color: '#5A8F6A', border: '1.5px solid #5A8F6A',
                     borderRadius: 8, cursor: 'pointer',
                   }}>✏️ Re-edit</button>
                   <button onClick={() => handleMoveBack(draft.id)} style={{
-                    padding: '7px 16px', fontSize: 11,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11,
                     background: 'transparent', color: '#8B7B6B', border: '1px solid #D4C4A8',
                     borderRadius: 8, cursor: 'pointer',
-                  }}>↩ Send This Back to Drafts</button>
+                  }}>{isMobile ? '↩ Back' : '↩ Send This Back to Drafts'}</button>
                   <button onClick={() => handleDelete(draft.id)} style={{
-                    padding: '7px 16px', fontSize: 11,
+                    padding: isMobile ? '6px 10px' : '7px 16px', fontSize: isMobile ? 10 : 11,
                     background: 'transparent', color: '#C0392B', border: '1px solid #C0392B',
                     borderRadius: 8, cursor: 'pointer',
                   }}>× Delete</button>
@@ -211,24 +213,27 @@ export default function DonePage({ onNavigate, onRefine }) {
       {viewingDraft && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 500, padding: 20,
+          display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center',
+          zIndex: 500, padding: isMobile ? 8 : 20,
+          overflowY: isMobile ? 'auto' : 'visible',
         }} onClick={(e) => { if (e.target === e.currentTarget) setViewingDraft(null); }}>
           <div style={{
             background: 'linear-gradient(180deg, #FFFDF5 0%, #FFF8E8 100%)',
-            borderRadius: 20, maxWidth: 700, width: '100%',
-            maxHeight: '85vh', overflowY: 'auto', padding: '40px 44px',
+            borderRadius: isMobile ? 12 : 20, maxWidth: 700, width: '100%',
+            maxHeight: isMobile ? 'none' : '85vh', overflowY: isMobile ? 'visible' : 'auto',
+            padding: isMobile ? '20px 16px' : '40px 44px',
+            margin: isMobile ? '8px 0 40px' : 0,
             boxShadow: '0 20px 60px rgba(0,0,0,0.25), 0 0 40px rgba(212,148,58,0.15), 0 0 0 2px #D4943A',
             fontFamily: "'Source Serif 4', serif",
           }}>
             {viewingDraft.title && (
               <h1 style={{
-                fontSize: 28, fontWeight: 700, color: '#2D8B5A', marginBottom: 16,
+                fontSize: isMobile ? 22 : 28, fontWeight: 700, color: '#2D8B5A', marginBottom: 16,
                 lineHeight: 1.3,
               }}>{viewingDraft.title}</h1>
             )}
             <div style={{
-              fontSize: 17, color: '#3A3020', lineHeight: 2,
+              fontSize: isMobile ? 15 : 17, color: '#3A3020', lineHeight: isMobile ? 1.8 : 2,
               whiteSpace: 'pre-wrap', wordBreak: 'break-word',
             }}>{viewingDraft.refinedText || viewingDraft.text}</div>
 

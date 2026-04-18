@@ -1,9 +1,15 @@
 import { useState, useRef } from 'react';
 import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, formatDate, addDraft, loadDrafts, moveDraftToProject, groupDraftsByProject, deleteDraft } from './storage';
 import TipsPanel from './TipsPanel';
+import AIChatPanel from './AIChatPanel';
 import NavBar from './NavBar';
+import { useAuth } from './AuthContext';
+import useIsMobile from './useIsMobile';
 
 export default function RefineMode({ draft, onNavigate }) {
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const [showAIChat, setShowAIChat] = useState(false);
   const [localDraftOrder, setLocalDraftOrder] = useState(null);
   const projectDraftsRaw = draft.projectId
     ? getDraftsByProject(draft.projectId)
@@ -173,15 +179,16 @@ export default function RefineMode({ draft, onNavigate }) {
       {/* Top bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px 24px', borderBottom: `1px solid ${t.topBorder}`,
+        padding: isMobile ? '10px 12px' : '16px 24px', borderBottom: `1px solid ${t.topBorder}`,
+        flexWrap: 'wrap', gap: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div onClick={() => { updateDraft(draft.id, { refinedText: editedText }); onNavigate('flow'); }} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
+          <div onClick={() => { updateDraft(draft.id, { refinedText: editedText }); onNavigate('flow'); }} style={{ fontSize: isMobile ? 14 : 18, fontWeight: 600, letterSpacing: '-0.5px', cursor: 'pointer' }}>
             <span style={{ color: '#A8B4C4', textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)' }}>Draft</span><span style={{ color: '#E8EDF2' }}>,</span> <span style={{ color: '#C0392B' }}>Stop</span><span style={{ color: '#D4943A', textShadow: '0 0 14px rgba(212,148,58,0.7), 0 0 28px rgba(212,148,58,0.4), 0 0 50px rgba(212,148,58,0.2)' }}>&nbsp;& Sharpen</span>
           </div>
           <span style={{ fontSize: 14, color: '#7A9A80' }}><span style={{ color: '#D4943A' }}>Sharpen</span> & Edit</span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: isMobile ? 4 : 8, flexWrap: 'wrap' }}>
           <button onClick={() => setLightMode(!lightMode)} style={{
             padding: '6px 12px', fontSize: 11, border: `1px solid ${t.borderColor}`,
             borderRadius: 8, background: 'transparent', color: t.mutedText, cursor: 'pointer',
@@ -212,7 +219,7 @@ export default function RefineMode({ draft, onNavigate }) {
 
       {/* Stats bar */}
       <div style={{
-        display: 'flex', gap: 12, padding: '12px 24px', flexWrap: 'wrap',
+        display: 'flex', gap: isMobile ? 8 : 12, padding: isMobile ? '8px 12px' : '12px 24px', flexWrap: 'wrap',
       }}>
         {[
           { label: 'Original Word Count', value: originalWords, color: '#A8B4C4', glow: false },
@@ -230,11 +237,42 @@ export default function RefineMode({ draft, onNavigate }) {
 
       {/* Split panes */}
       <div style={{
-        flex: 1, display: 'flex', gap: 16, padding: '0 24px 24px',
-        minHeight: 0,
+        flex: 1, display: 'flex', gap: isMobile ? 12 : 16,
+        padding: isMobile ? '0 8px 16px' : '0 24px 24px',
+        minHeight: 0, flexDirection: isMobile ? 'column' : 'row',
       }}>
         {/* Original — greyish white text */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {/* AI Writing Coach */}
+          {!showAIChat && (
+            <button onClick={() => {
+              if (user && (!user.tier || user.tier === 'free')) {
+                alert('AI Writing Coach requires a paid plan. Upgrade to get started!');
+                return;
+              }
+              setShowAIChat(true);
+            }} style={{
+              background: t.panel, border: `1px solid ${t.panelBorder}`, borderRadius: 10,
+              padding: '8px 12px', marginBottom: 8, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+              color: '#D4943A', fontSize: 12, fontWeight: 600,
+            }}>
+              <span>&#10024;</span> Writing Coach
+              <span style={{ fontSize: 9, color: t.mutedText, fontWeight: 400, marginLeft: 'auto' }}>
+                {(user && user.tier && user.tier !== 'free') ? 'Click to open' : !user ? 'Free trial' : '(Premium)'}
+              </span>
+            </button>
+          )}
+          {showAIChat && (
+            <AIChatPanel
+              theme={t}
+              projectDrafts={projectDrafts}
+              projectId={draft.projectId}
+              onClose={() => setShowAIChat(false)}
+              isAnon={!user}
+            />
+          )}
+
           <div style={{
             background: 'linear-gradient(135deg, #2A3644 0%, #344050 50%, #2A3644 100%)',
             padding: '8px 14px', borderRadius: '10px 10px 0 0',
@@ -585,27 +623,29 @@ export default function RefineMode({ draft, onNavigate }) {
 
       {/* Bottom buttons */}
       <div style={{
-        display: 'flex', justifyContent: 'center', gap: 12, padding: '0 24px 24px',
+        display: 'flex', justifyContent: 'center', gap: isMobile ? 6 : 12,
+        padding: isMobile ? '0 8px 16px' : '0 24px 24px',
+        flexWrap: 'wrap',
       }}>
         <button onClick={handleCopy} style={{
-          padding: '10px 24px', fontSize: 13, fontWeight: 600,
+          padding: isMobile ? '8px 12px' : '10px 24px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
           background: '#A8B4C4', color: '#FFF', border: 'none',
-          borderRadius: 8, cursor: 'pointer', minWidth: 160,
+          borderRadius: 8, cursor: 'pointer', minWidth: isMobile ? 0 : 160,
           textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-        }}>{copied ? 'Copied!' : 'Copy Sharpened Text'}</button>
+        }}>{copied ? 'Copied!' : isMobile ? 'Copy Text' : 'Copy Sharpened Text'}</button>
         <button onClick={handleSave} style={{
-          padding: '10px 24px', fontSize: 13, fontWeight: 600,
+          padding: isMobile ? '8px 12px' : '10px 24px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
           background: 'transparent', color: '#D4943A',
           border: '1px solid #D4943A', borderRadius: 8, cursor: 'pointer',
           textShadow: '0 0 10px rgba(212,148,58,0.5), 0 0 20px rgba(212,148,58,0.25)',
-        }}>↓ Save Sharpened to Computer</button>
+        }}>{isMobile ? '↓ Save Sharpened' : '↓ Save Sharpened to Computer'}</button>
         <button onClick={() => {
           downloadTextFile(selectedOriginal.text, `original-${formatDate()}.txt`);
         }} style={{
-          padding: '10px 24px', fontSize: 13, fontWeight: 600,
+          padding: isMobile ? '8px 12px' : '10px 24px', fontSize: isMobile ? 11 : 13, fontWeight: 600,
           background: 'transparent', color: t.mutedText,
           border: `1px solid ${t.borderColor}`, borderRadius: 8, cursor: 'pointer',
-        }}>↓ Save Original to Computer</button>
+        }}>{isMobile ? '↓ Save Original' : '↓ Save Original to Computer'}</button>
       </div>
 
       {/* Tips panel */}

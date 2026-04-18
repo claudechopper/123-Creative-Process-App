@@ -20,4 +20,10 @@ export const api = {
   getProjects: () => request('/api/projects'),
   createProject: (name, id) => request('/api/projects', { method: 'POST', body: JSON.stringify({ name, id }) }),
   deleteProject: (id) => request(`/api/projects/${id}`, { method: 'DELETE' }),
+
+  // AI Chat
+  getChatInfo: () => request('/api/chat/info'),
+  sendChat: (payload) => request('/api/chat', { method: 'POST', body: JSON.stringify(payload) }),
+  getChatHistory: (projectId) => request(`/api/chat/history/${projectId}`),
+  clearChatHistory: (projectId) => request(`/api/chat/history/${projectId}`, { method: 'DELETE' }),
 };
