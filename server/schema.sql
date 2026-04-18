@@ -62,3 +62,12 @@ CREATE TABLE IF NOT EXISTS ai_daily_budget (
   day DATE PRIMARY KEY,
   cents_spent INTEGER NOT NULL DEFAULT 0
 );
+
+-- Per-user daily AI spend (free-forever model — daily cap instead of monthly tier cap)
+CREATE TABLE IF NOT EXISTS user_daily_spend (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day DATE NOT NULL,
+  cents_spent INTEGER NOT NULL DEFAULT 0,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, day)
+);

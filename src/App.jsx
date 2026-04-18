@@ -8,9 +8,11 @@ import DonePage from './DonePage';
 import Banner from './Banner';
 import OnboardingPopup, { isTourActive, clearTour } from './OnboardingPopup';
 import GuidedTour from './GuidedTour';
+import ErrorBoundary from './ErrorBoundary';
+import MadeBy from './MadeBy';
 import { loadDrafts } from './storage';
 
-export default function App() {
+function AppInner() {
   const [mode, setMode] = useState('flow');
   const [refineDraft, setRefineDraft] = useState(null);
   const [tourActive, setTourActive] = useState(false);
@@ -88,6 +90,7 @@ export default function App() {
       )}
       {mode === 'done' && <DonePage onNavigate={handleNavigate} onRefine={handleRefine} />}
       <Banner mode={mode} />
+      <MadeBy />
       {tourActive && (
         <GuidedTour
           sessionActive={tourFlowState.sessionActive}
@@ -100,5 +103,13 @@ export default function App() {
         />
       )}
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInner />
+    </ErrorBoundary>
   );
 }

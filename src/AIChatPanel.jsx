@@ -8,20 +8,9 @@ const MODEL_OPTIONS = [
   { key: 'opus', label: 'Opus 4.6', desc: 'Most capable', avgTokens: 10 },
 ];
 
-// 1000 tokens = $2.50 free allowance (1 token = 0.25 cents)
-const ANON_TOKEN_CAP = 1000;
+// Display-only conversion — backend is the source of truth for actual caps.
 const CENTS_PER_TOKEN = 0.25;
-const ANON_CAP_CENTS = 250; // kept for backend/localStorage compatibility
-const ANON_SPEND_KEY = 'twomodes_ai_spend_cents';
-
-const centsToTokens = (cents) => Math.round(cents / CENTS_PER_TOKEN);
-
-function getAnonSpent() {
-  return parseInt(localStorage.getItem(ANON_SPEND_KEY) || '0', 10);
-}
-function addAnonSpent(cents) {
-  localStorage.setItem(ANON_SPEND_KEY, String(getAnonSpent() + cents));
-}
+const centsToTokens = (cents) => Math.max(0, Math.round(cents / CENTS_PER_TOKEN));
 
 function CopyBtn({ text, theme: t }) {
   const [copied, setCopied] = useState(false);
@@ -56,27 +45,25 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('haiku');
   const [contextEnabled, setContextEnabled] = useState(false);
-  const [spent, setSpent] = useState(isAnon ? getAnonSpent() : 0);
-  const [cap, setCap] = useState(isAnon ? ANON_CAP_CENTS : 0);
-  const [tier, setTier] = useState(isAnon ? 'anon' : 'free');
+  const [spent, setSpent] = useState(0);
+  const [cap, setCap] = useState(0);
   const [modelHint, setModelHint] = useState(null);
   const [panelSize, setPanelSize] = useState('normal'); // 'minimized' | 'normal' | 'expanded'
   const [cardFlash, setCardFlash] = useState(null); // flash message for card creation
+  const [limitReached, setLimitReached] = useState(false);
   const scrollRef = useRef(null);
 
-  // Load chat info on mount
+  // Load chat info from backend (source of truth for both anon + signed-in)
   useEffect(() => {
-    if (isAnon) {
-      setSpent(getAnonSpent());
-      setCap(ANON_CAP_CENTS);
-      return;
-    }
     api.getChatInfo().then(info => {
       if (info) {
         setSpent(info.spent || 0);
         setCap(info.cap || 0);
-        setTier(info.tier || 'free');
       }
+    }).catch(() => {
+      // DB unreachable — show generous defaults, backend will 429 if actually over
+      setSpent(0);
+      setCap(isAnon ? 25 : 50);
     });
   }, [isAnon]);
 
@@ -110,11 +97,14 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
     const text = input.trim();
     if (!text || loading) return;
 
-    // Enforce anon cap client-side
-    if (isAnon && centsToTokens(getAnonSpent()) >= ANON_TOKEN_CAP) {
+    // Soft client-side check (backend is authoritative)
+    if (cap > 0 && spent >= cap) {
+      setLimitReached(true);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "You've used your 1000 free tokens. Sign in and upgrade to keep going!",
+        content: isAnon
+          ? "Daily free limit reached. Sign in for more, or come back tomorrow!"
+          : "You've hit today's free AI limit. Come back tomorrow!",
         costCents: 0,
         error: true,
       }]);
@@ -128,29 +118,44 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
     setLoading(true);
 
     try {
-      const res = await api.sendChat({
-        message: text,
-        projectId,
-        context: contextText,
-        model,
-        history: messages.slice(-10), // send last 10 for context window
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          projectId,
+          context: contextText,
+          model,
+          history: messages.slice(-10),
+        }),
       });
 
-      if (res) {
+      if (res.status === 429 || res.status === 503) {
+        const body = await res.json().catch(() => ({}));
+        setLimitReached(true);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: res.text,
-          costCents: res.costCents || 0,
-          modelUsed: res.model,
+          content: body.error || "Daily free limit reached. Come back tomorrow!",
+          costCents: 0,
+          error: true,
         }]);
-        if (isAnon) {
-          addAnonSpent(res.costCents || 0);
-          setSpent(getAnonSpent());
-        } else {
-          setSpent(res.spent || 0);
-          setCap(res.cap || 0);
-        }
+        if (typeof body.spent === 'number') setSpent(body.spent);
+        if (typeof body.cap === 'number') setCap(body.cap);
+        return;
       }
+
+      if (!res.ok) throw new Error(`chat failed: ${res.status}`);
+      const data = await res.json();
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.text,
+        costCents: data.costCents || 0,
+        modelUsed: data.model,
+      }]);
+      setSpent(data.spent || 0);
+      if (data.cap) setCap(data.cap);
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -189,8 +194,8 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
     makeCardFromText(fullText, 'Conversation saved as draft!');
   };
 
-  const spentTokens = isAnon ? centsToTokens(spent) : centsToTokens(spent);
-  const capTokens = isAnon ? ANON_TOKEN_CAP : centsToTokens(cap);
+  const spentTokens = centsToTokens(spent);
+  const capTokens = centsToTokens(cap);
   const usagePercent = capTokens > 0 ? Math.min(100, (spentTokens / capTokens) * 100) : 0;
 
   const isMinimized = panelSize === 'minimized';

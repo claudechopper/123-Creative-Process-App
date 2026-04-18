@@ -8,17 +8,15 @@ import { toCamelArray } from '../utils.js';
 const router = Router();
 
 // ============================================================================
-// SECURITY CAPS — The 7-layer defense against AI cost exploits
+// SECURITY CAPS — Free-forever model with 3-layer cost defense
+// ============================================================================
+// Layer 1 (anon per-IP):  25¢/day/IP    → prevents one anon from burning budget
+// Layer 2 (user per-day): 50¢/day/user  → prevents one signed-in user from burning budget
+// Layer 3 (global):       $2/day total  → hard kill switch, caps worst-case month at ~$60
 // ============================================================================
 
-// Tier caps in cents (monthly, for authenticated users)
-const TIER_CAPS = {
-  free: 0,
-  starter: 250,
-  pro: 750,
-  unlimited: 2500,
-  power: 5000,
-};
+// Daily cap for signed-in users (in cents). ~80 Haiku messages/day.
+const USER_DAILY_CAP_CENTS = 50;
 
 // Anon caps (unauthenticated users)
 const ANON_DAILY_CAP_CENTS = 25;        // 25¢/day per IP (~40 Haiku msgs)
@@ -30,7 +28,7 @@ const MAX_HISTORY_MESSAGES = 10;
 const MAX_MESSAGE_CHARS = 3000;
 
 // Global kill switch — if total AI spend across ALL users exceeds this in
-// one day, anon requests are 503'd. Paid users still work (up to tier cap).
+// one day, all new requests are 503'd. Protects against runaway cost.
 const GLOBAL_DAILY_BUDGET_CENTS = parseInt(process.env.AI_DAILY_BUDGET_CENTS, 10) || 200; // default $2/day
 
 // ============================================================================
@@ -46,7 +44,7 @@ const anonLimiter = rateLimit({
   keyGenerator: ipKeyGenerator,
 });
 
-const paidLimiter = rateLimit({
+const userLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 100,
   standardHeaders: true,
@@ -57,7 +55,7 @@ const paidLimiter = rateLimit({
 
 // Route the right limiter based on auth status
 function applyRateLimit(req, res, next) {
-  if (req.isAuthenticated()) return paidLimiter(req, res, next);
+  if (req.isAuthenticated()) return userLimiter(req, res, next);
   return anonLimiter(req, res, next);
 }
 
@@ -89,14 +87,22 @@ async function getAnonSpendToday(ipHash) {
   return result.rows[0]?.cents_spent || 0;
 }
 
-async function recordSpend(costCents, ipHash, isAnon) {
+async function getUserSpendToday(userId) {
+  const result = await query(
+    `SELECT cents_spent FROM user_daily_spend WHERE user_id = $1 AND day = $2`,
+    [userId, today()]
+  );
+  return result.rows[0]?.cents_spent || 0;
+}
+
+async function recordSpend({ costCents, ipHash, userId, isAnon }) {
   // Always update global ceiling
   await query(
     `INSERT INTO ai_daily_budget (day, cents_spent) VALUES ($1, $2)
      ON CONFLICT (day) DO UPDATE SET cents_spent = ai_daily_budget.cents_spent + $2`,
     [today(), costCents]
   );
-  // Update per-IP anon spend if anon
+  // Per-IP anon spend
   if (isAnon) {
     await query(
       `INSERT INTO anon_spend (ip_hash, day, cents_spent, request_count) VALUES ($1, $2, $3, 1)
@@ -104,6 +110,15 @@ async function recordSpend(costCents, ipHash, isAnon) {
          cents_spent = anon_spend.cents_spent + $3,
          request_count = anon_spend.request_count + 1`,
       [ipHash, today(), costCents]
+    );
+  } else if (userId) {
+    // Per-user daily spend (free-forever model)
+    await query(
+      `INSERT INTO user_daily_spend (user_id, day, cents_spent, request_count) VALUES ($1, $2, $3, 1)
+       ON CONFLICT (user_id, day) DO UPDATE SET
+         cents_spent = user_daily_spend.cents_spent + $3,
+         request_count = user_daily_spend.request_count + 1`,
+      [userId, today(), costCents]
     );
   }
 }
@@ -117,28 +132,25 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Gates: authenticated users need paid tier; anons allowed but flagged + capped
-async function requirePaidOrAnon(req, res, next) {
+// Everyone gets access. Anons capped per-IP, users capped per-day, global kill switch caps total.
+async function enforceCaps(req, res, next) {
   try {
-    // Layer 5: Global kill switch check (applies to everyone)
+    // Layer 3: Global kill switch check (applies to everyone)
     const globalSpent = await getGlobalSpendToday();
     if (globalSpent >= GLOBAL_DAILY_BUDGET_CENTS) {
-      // Paid users keep working — only block anons once global cap hit
-      if (!req.isAuthenticated()) {
-        return res.status(503).json({
-          error: 'AI Writing Coach is taking a break for the day. Try again tomorrow, or sign up for a paid plan.',
-          code: 'DAILY_BUDGET_EXCEEDED',
-        });
-      }
+      return res.status(503).json({
+        error: 'AI Writing Coach is taking a break for the day — come back tomorrow!',
+        code: 'DAILY_BUDGET_EXCEEDED',
+      });
     }
 
     if (!req.isAuthenticated()) {
-      // Layer 3: Anon per-IP daily cap
+      // Layer 1: Anon per-IP daily cap
       const ipHash = hashIp(req.ip);
       const anonSpent = await getAnonSpendToday(ipHash);
       if (anonSpent >= ANON_DAILY_CAP_CENTS) {
         return res.status(429).json({
-          error: 'Free daily AI limit reached. Sign up to keep going.',
+          error: 'Daily free limit reached. Sign in for a bigger daily allowance, or come back tomorrow.',
           code: 'ANON_DAILY_CAP_REACHED',
         });
       }
@@ -147,25 +159,20 @@ async function requirePaidOrAnon(req, res, next) {
       return next();
     }
 
-    // Authenticated: require paid tier + check monthly cap
-    const tier = req.user.tier || 'free';
-    if (tier === 'free') {
-      return res.status(403).json({ error: 'AI Writing Coach requires a paid plan', code: 'UPGRADE_REQUIRED' });
-    }
-    const cap = TIER_CAPS[tier] || 0;
-    const spent = req.user.ai_spend_cents || 0;
-    if (spent >= cap) {
-      return res.status(403).json({
-        error: 'Monthly AI usage limit reached. Upgrade for more.',
-        code: 'USAGE_CAP_REACHED',
-        spent,
-        cap,
+    // Layer 2: Signed-in per-user daily cap
+    const userSpent = await getUserSpendToday(req.user.id);
+    if (userSpent >= USER_DAILY_CAP_CENTS) {
+      return res.status(429).json({
+        error: "You've hit today's free AI limit. Come back tomorrow!",
+        code: 'USER_DAILY_CAP_REACHED',
+        spent: userSpent,
+        cap: USER_DAILY_CAP_CENTS,
       });
     }
     next();
   } catch (err) {
     console.error('Cap check failed:', err);
-    res.status(500).json({ error: 'Internal error during auth check' });
+    res.status(500).json({ error: 'Internal error during cap check' });
   }
 }
 
@@ -177,13 +184,13 @@ async function requirePaidOrAnon(req, res, next) {
 router.get('/info', async (req, res) => {
   try {
     const isAnon = !req.isAuthenticated();
-    const tier = isAnon ? 'anon' : (req.user?.tier || 'free');
-    const cap = isAnon ? ANON_DAILY_CAP_CENTS : (TIER_CAPS[tier] || 0);
+    const tier = isAnon ? 'anon' : 'free';
+    const cap = isAnon ? ANON_DAILY_CAP_CENTS : USER_DAILY_CAP_CENTS;
     let spent = 0;
     if (isAnon) {
       try { spent = await getAnonSpendToday(hashIp(req.ip)); } catch { spent = 0; }
     } else {
-      spent = req.user?.ai_spend_cents || 0;
+      try { spent = await getUserSpendToday(req.user.id); } catch { spent = 0; }
     }
     const allowed = isAnon ? ANON_ALLOWED_MODELS : Object.keys(MODELS);
     const models = Object.entries(MODELS)
@@ -194,7 +201,7 @@ router.get('/info', async (req, res) => {
         inputPer1M: m.inputPer1M,
         outputPer1M: m.outputPer1M,
       }));
-    res.json({ tier, cap, spent, models, isAnon });
+    res.json({ tier, cap, spent, models, isAnon, period: 'day' });
   } catch (err) {
     console.error('Info error:', err);
     res.status(500).json({ error: 'Failed to load info' });
@@ -202,7 +209,7 @@ router.get('/info', async (req, res) => {
 });
 
 // Send a message
-router.post('/', applyRateLimit, requirePaidOrAnon, async (req, res) => {
+router.post('/', applyRateLimit, enforceCaps, async (req, res) => {
   try {
     let { message, projectId, context, model = 'haiku', history = [] } = req.body;
 
@@ -235,12 +242,17 @@ router.post('/', applyRateLimit, requirePaidOrAnon, async (req, res) => {
 
     const result = await chat(messages, { model, context: context || null });
 
-    // Layer 5 + Layer 3: record spend (global + per-IP for anons, or per-user)
-    await recordSpend(result.costCents, req.ipHash, !!req.isAnon);
+    // Record spend (global + per-IP for anons, or per-user for signed-in)
+    await recordSpend({
+      costCents: result.costCents,
+      ipHash: req.ipHash,
+      userId: req.user?.id,
+      isAnon: !!req.isAnon,
+    });
 
-    // Save message + update spend for authenticated users only
+    // Save chat history for signed-in users
     let newSpent = 0;
-    let tierCap = ANON_DAILY_CAP_CENTS;
+    let dailyCap = ANON_DAILY_CAP_CENTS;
     if (!req.isAnon) {
       await query(
         `INSERT INTO chat_messages (user_id, project_id, role, content, cost_cents) VALUES ($1, $2, 'user', $3, 0)`,
@@ -250,13 +262,8 @@ router.post('/', applyRateLimit, requirePaidOrAnon, async (req, res) => {
         `INSERT INTO chat_messages (user_id, project_id, role, content, cost_cents) VALUES ($1, $2, 'assistant', $3, $4)`,
         [req.user.id, projectId || null, result.text, result.costCents]
       );
-      await query(
-        `UPDATE users SET ai_spend_cents = ai_spend_cents + $1 WHERE id = $2`,
-        [result.costCents, req.user.id]
-      );
-      const tier = req.user.tier || 'free';
-      newSpent = (req.user.ai_spend_cents || 0) + result.costCents;
-      tierCap = TIER_CAPS[tier] || 0;
+      newSpent = await getUserSpendToday(req.user.id);
+      dailyCap = USER_DAILY_CAP_CENTS;
     } else {
       newSpent = await getAnonSpendToday(req.ipHash);
     }
@@ -268,7 +275,7 @@ router.post('/', applyRateLimit, requirePaidOrAnon, async (req, res) => {
       inputTokens: result.inputTokens,
       outputTokens: result.outputTokens,
       spent: newSpent,
-      cap: tierCap,
+      cap: dailyCap,
     });
   } catch (err) {
     console.error('Chat error:', err);
@@ -277,7 +284,7 @@ router.post('/', applyRateLimit, requirePaidOrAnon, async (req, res) => {
   }
 });
 
-// Layer 6: history endpoints now require authentication
+// History endpoints require authentication
 router.get('/history/:projectId', requireAuth, async (req, res) => {
   try {
     const result = await query(
