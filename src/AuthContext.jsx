@@ -1,27 +1,18 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from './api';
+// Auth was removed — this is a free, local-only app. No accounts, no cloud
+// sync, no OAuth. This stub exists so existing `useAuth()` consumers keep
+// working without breaking. They'll always see user=null (anonymous).
+//
+// If you ever want accounts back: add a real Passport setup in server/index.js,
+// re-wire server/routes/auth.js + api.js, then replace this stub.
 
-const AuthContext = createContext(null);
+import { createContext, useContext } from 'react';
+
+const AuthContext = createContext({ user: null, loading: false, login: null, logout: null });
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.getMe()
-      .then(data => setUser(data?.user || null))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const login = () => { window.location.href = '/auth/google'; };
-  const logout = async () => {
-    await api.logout();
-    setUser(null);
-  };
-
+  // No-op provider. Everyone is anonymous.
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user: null, loading: false, login: null, logout: null }}>
       {children}
     </AuthContext.Provider>
   );

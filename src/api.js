@@ -1,3 +1,7 @@
+// All non-AI data lives in localStorage (see storage.js). This module only
+// exists for the AI Coach, which needs a backend to proxy Anthropic calls
+// and track global spend for the daily cost cap.
+
 async function request(path, options = {}) {
   const res = await fetch(path, {
     credentials: 'include',
@@ -10,20 +14,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getMe: () => request('/auth/me'),
-  logout: () => request('/auth/logout', { method: 'POST' }),
-  getDrafts: () => request('/api/drafts'),
-  createDraft: (draft) => request('/api/drafts', { method: 'POST', body: JSON.stringify(draft) }),
-  updateDraft: (id, updates) => request(`/api/drafts/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
-  deleteDraft: (id) => request(`/api/drafts/${id}`, { method: 'DELETE' }),
-  syncDrafts: (drafts) => request('/api/drafts/sync', { method: 'POST', body: JSON.stringify({ drafts }) }),
-  getProjects: () => request('/api/projects'),
-  createProject: (name, id) => request('/api/projects', { method: 'POST', body: JSON.stringify({ name, id }) }),
-  deleteProject: (id) => request(`/api/projects/${id}`, { method: 'DELETE' }),
-
-  // AI Chat
+  // AI Chat (the only server-backed feature)
   getChatInfo: () => request('/api/chat/info'),
   sendChat: (payload) => request('/api/chat', { method: 'POST', body: JSON.stringify(payload) }),
-  getChatHistory: (projectId) => request(`/api/chat/history/${projectId}`),
-  clearChatHistory: (projectId) => request(`/api/chat/history/${projectId}`, { method: 'DELETE' }),
 };

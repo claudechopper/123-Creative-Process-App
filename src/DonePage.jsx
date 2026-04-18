@@ -1,11 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
-import { useAuth } from './AuthContext';
+// useAuth removed — app is local-only, no accounts
 import { loadDoneDrafts, loadProjects, updateDraft, deleteDraft, downloadTextFile, formatDate } from './storage';
 import NavBar from './NavBar';
 import useIsMobile from './useIsMobile';
 
 export default function DonePage({ onNavigate, onRefine }) {
-  const { user, login } = useAuth();
+  // no auth — drafts live in localStorage only
   const [drafts, setDrafts] = useState(loadDoneDrafts);
   const [copiedId, setCopiedId] = useState(null);
   const [viewingDraft, setViewingDraft] = useState(null);
@@ -87,15 +87,7 @@ export default function DonePage({ onNavigate, onRefine }) {
               onNavigate('gap');
             }
           }} />
-          {user ? (
-            <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #D4943A' }}>
-              {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} /> : (
-                <div style={{ width: '100%', height: '100%', background: '#D4943A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 12, fontWeight: 700 }}>{user.name?.[0] || '?'}</div>
-              )}
-            </div>
-          ) : (
-            <button onClick={login} style={{ padding: '6px 12px', fontSize: 11, border: 'none', borderRadius: 8, background: '#D4943A', color: '#FFF', cursor: 'pointer', fontWeight: 600 }}>Sign in</button>
-          )}
+          {/* Auth removed — no avatar/sign-in button */}
         </div>
       </div>
 

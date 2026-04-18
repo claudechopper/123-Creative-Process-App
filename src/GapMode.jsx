@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
+// useAuth removed — app is local-only, no accounts
 import { groupDraftsByProject, updateDraft, deleteDraft, addDraft, loadDrafts, loadActiveDrafts, loadDoneDrafts, loadProjects, reorderProjects, renameProject, addProject, deleteProject, moveDraftToProject, reorderDrafts } from './storage';
 import NavBar from './NavBar';
 import useIsMobile from './useIsMobile';
@@ -14,7 +14,7 @@ const GAP_QUOTES = [
 ];
 
 export default function GapMode({ onNavigate, onRefine }) {
-  const { user, login } = useAuth();
+  // no auth — drafts live in localStorage only
   const isMobile = useIsMobile();
   const [groups, setGroups] = useState(() => {
     const all = groupDraftsByProject();
@@ -273,23 +273,7 @@ export default function GapMode({ onNavigate, onRefine }) {
               alert('No drafts are ready to sharpen yet. Wait for the incubation period to finish.');
             }
           }} />
-          {user ? (
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', border: '2px solid #A8B4C4',
-            }}>
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: '#A8B4C4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: 12, fontWeight: 700 }}>{user.name?.[0] || '?'}</div>
-              )}
-            </div>
-          ) : (
-            <button onClick={login} style={{
-              padding: '6px 12px', fontSize: 11, border: 'none', borderRadius: 8,
-              background: '#A8B4C4', color: '#FFF', cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-            }}>Sign in</button>
-          )}
+          {/* Auth removed — no avatar/sign-in button */}
         </div>
       </div>
 

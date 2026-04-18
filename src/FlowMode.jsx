@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
+// useAuth removed — app is local-only, no accounts
 import { addDraft, addProject, loadProjects, loadActiveDrafts, downloadTextFile, formatDate } from './storage';
 import { resetOnboarding } from './OnboardingPopup';
 import TipsPanel from './TipsPanel';
@@ -24,7 +24,7 @@ const silverShimmer = {
 };
 
 export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour, onTourEnd, onTourState }) {
-  const { user, login } = useAuth();
+  // no auth — all users anonymous, drafts stored in localStorage
   const isMobile = useIsMobile();
   const [text, setText] = useState('');
   const [strictMode, setStrictMode] = useState(true);
@@ -277,29 +277,7 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
             else onNavigate('gap');
           }} />
 
-          {user ? (
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #A8B4C4',
-            }}>
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <div style={{
-                  width: '100%', height: '100%', background: '#A8B4C4',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#FFF', fontSize: 12, fontWeight: 700,
-                }}>{user.name?.[0] || '?'}</div>
-              )}
-            </div>
-          ) : (
-            <button onClick={login} style={{
-              padding: '6px 12px', fontSize: 11, border: 'none',
-              borderRadius: 8, background: '#A8B4C4', color: '#FFF',
-              cursor: 'pointer', fontWeight: 600,
-              textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-            }}>Sign in</button>
-          )}
+          {/* Auth removed — no avatar/sign-in button */}
         </div>
       </div>
 
@@ -328,43 +306,12 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
                 </span>
               </div>
 
-              {!user && (
-                <div style={{
-                  background: '#F5EDD8', border: '2px solid #A8B4C4', borderRadius: 16,
-                  padding: '20px 28px', maxWidth: 480, margin: '0 auto 30px',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#5C4A32', marginBottom: 8 }}>
-                    Your writing is precious.
-                  </div>
-                  <p style={{ fontSize: 13, color: '#8B7B6B', lineHeight: 1.6, marginBottom: 14 }}>
-                    Sign in to save your drafts to the cloud and access them anywhere.
-                    Without an account, drafts exist only in this browser.
-                  </p>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={login} style={{
-                      padding: '10px 20px', fontSize: 13, fontWeight: 600,
-                      background: '#A8B4C4', color: '#FFF', border: 'none',
-                      borderRadius: 8, cursor: 'pointer',
-                      textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-                    }}>Sign in with Google</button>
-                    <button onClick={() => setShowTimePicker(true)} style={{
-                      padding: '10px 20px', fontSize: 13,
-                      background: 'transparent', border: '1px solid #D4C4A8',
-                      borderRadius: 8, color: '#8B7B6B', cursor: 'pointer',
-                    }}>Continue without signing in</button>
-                  </div>
-                </div>
-              )}
-
-              {user && (
-                <button onClick={() => setShowTimePicker(true)} style={{
-                  padding: '14px 36px', fontSize: 16, fontWeight: 600,
-                  background: '#A8B4C4', color: '#FFF', border: 'none',
-                  borderRadius: 12, cursor: 'pointer',
-                  textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
-                }}>Start Session</button>
-              )}
+              <button onClick={() => setShowTimePicker(true)} style={{
+                padding: '14px 36px', fontSize: 16, fontWeight: 600,
+                background: '#A8B4C4', color: '#FFF', border: 'none',
+                borderRadius: 12, cursor: 'pointer',
+                textShadow: '0 0 12px rgba(255,255,255,0.7), 0 0 24px rgba(168,180,196,0.6), 0 0 40px rgba(168,180,196,0.3)',
+              }}>Start Session</button>
 
               <div style={{ marginTop: 20, display: 'flex', gap: 16, justifyContent: 'center' }}>
                 <button onClick={() => { resetOnboarding(); window.location.reload(); }} style={{
@@ -621,7 +568,7 @@ export default function FlowMode({ onNavigate, onRefine, tourActive, onStartTour
             projectDrafts={[]}
             projectId={null}
             onClose={() => setShowAIChat(false)}
-            isAnon={!user}
+            isAnon={true}
           />
         </div>
       )}

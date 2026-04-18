@@ -1,11 +1,13 @@
-import { api } from './api';
+// All data lives in the user's browser. No cloud sync, no accounts.
+// Drafts, projects, everything — local-only.
 
 const DRAFTS_KEY = 'twomodes_drafts';
 const PROJECTS_KEY = 'twomodes_projects';
 const BANNER_KEY = 'twomodes_banner_dismissed';
 
-let _isLoggedIn = false;
-export function setLoggedIn(val) { _isLoggedIn = val; }
+// Kept as a no-op so existing call sites in App.jsx don't need to change.
+export function setLoggedIn() { /* no-op — auth removed */ }
+export async function syncAllDrafts() { /* no-op — no cloud to sync to */ }
 
 export function generateId() {
   return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -47,9 +49,6 @@ export function addDraft({ text, wordCount, projectId = null }) {
   };
   drafts.unshift(draft);
   saveDrafts(drafts);
-  if (_isLoggedIn) {
-    api.createDraft(draft).catch(err => console.warn('Cloud sync failed:', err));
-  }
   return draft;
 }
 
@@ -60,18 +59,12 @@ export function updateDraft(id, updates) {
     drafts[idx] = { ...drafts[idx], ...updates };
     saveDrafts(drafts);
   }
-  if (_isLoggedIn) {
-    api.updateDraft(id, updates).catch(err => console.warn('Cloud sync failed:', err));
-  }
   return drafts;
 }
 
 export function deleteDraft(id) {
   const drafts = loadDrafts().filter(d => d.id !== id);
   saveDrafts(drafts);
-  if (_isLoggedIn) {
-    api.deleteDraft(id).catch(err => console.warn('Cloud sync failed:', err));
-  }
   return drafts;
 }
 
@@ -92,9 +85,6 @@ export function addProject(name) {
   const project = { id: generateId(), name, createdAt: Date.now() };
   projects.unshift(project);
   saveProjects(projects);
-  if (_isLoggedIn) {
-    api.createProject(name, project.id).catch(err => console.warn('Cloud sync failed:', err));
-  }
   return project;
 }
 
@@ -112,9 +102,6 @@ export function deleteProject(id) {
   saveProjects(projects);
   const drafts = loadDrafts().map(d => d.projectId === id ? { ...d, projectId: null } : d);
   saveDrafts(drafts);
-  if (_isLoggedIn) {
-    api.deleteProject(id).catch(err => console.warn('Cloud sync failed:', err));
-  }
   return { projects, drafts };
 }
 
@@ -168,23 +155,6 @@ export function reorderProjects(orderedIds) {
   const projects = loadProjects();
   const reordered = orderedIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
   saveProjects(reordered);
-}
-
-// --- Cloud Sync ---
-
-export async function syncAllDrafts() {
-  if (!_isLoggedIn) return;
-  try {
-    const localDrafts = loadDrafts();
-    if (localDrafts.length > 0) {
-      const result = await api.syncDrafts(localDrafts);
-      if (result?.drafts) {
-        saveDrafts(result.drafts);
-      }
-    }
-  } catch (err) {
-    console.warn('Initial sync failed:', err);
-  }
 }
 
 // --- Banner ---

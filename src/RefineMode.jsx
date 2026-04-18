@@ -3,11 +3,10 @@ import { updateDraft, getDraftsByProject, reorderDrafts, downloadTextFile, forma
 import TipsPanel from './TipsPanel';
 import AIChatPanel from './AIChatPanel';
 import NavBar from './NavBar';
-import { useAuth } from './AuthContext';
+// useAuth removed — app is local-only, no accounts
 import useIsMobile from './useIsMobile';
 
 export default function RefineMode({ draft, onNavigate }) {
-  const { user } = useAuth();
   const isMobile = useIsMobile();
   const [showAIChat, setShowAIChat] = useState(false);
   const [localDraftOrder, setLocalDraftOrder] = useState(null);
@@ -269,7 +268,7 @@ export default function RefineMode({ draft, onNavigate }) {
               projectDrafts={projectDrafts}
               projectId={draft.projectId}
               onClose={() => setShowAIChat(false)}
-              isAnon={!user}
+              isAnon={true}
             />
           )}
 
