@@ -1,8 +1,19 @@
 import { Router } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import crypto from 'crypto';
-import { query } from '../db.js';
 import { chat, MODELS } from '../services/ai.js';
+
+// In-memory spend tracking. Resets on deploy — acceptable for a free lead-magnet
+// app since Anthropic prepaid balance is the real hard ceiling, and redeploys
+// are rare. Keyed by UTC day string; old days get pruned on each request.
+const ipSpend = new Map();    // key = `${ipHash}|${day}` -> cents
+const globalSpend = new Map(); // key = day -> cents
+
+function pruneOldDays() {
+  const d = today();
+  for (const k of globalSpend.keys()) if (k !== d) globalSpend.delete(k);
+  for (const k of ipSpend.keys()) if (!k.endsWith('|' + d)) ipSpend.delete(k);
+}
 
 const router = Router();
 
@@ -46,65 +57,42 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function getGlobalSpendToday() {
-  const result = await query(
-    `SELECT cents_spent FROM ai_daily_budget WHERE day = $1`,
-    [today()]
-  );
-  return result.rows[0]?.cents_spent || 0;
+function getGlobalSpendToday() {
+  return globalSpend.get(today()) || 0;
 }
 
-async function getIpSpendToday(ipHash) {
-  const result = await query(
-    `SELECT cents_spent FROM anon_spend WHERE ip_hash = $1 AND day = $2`,
-    [ipHash, today()]
-  );
-  return result.rows[0]?.cents_spent || 0;
+function getIpSpendToday(ipHash) {
+  return ipSpend.get(`${ipHash}|${today()}`) || 0;
 }
 
-async function recordSpend({ costCents, ipHash }) {
-  await query(
-    `INSERT INTO ai_daily_budget (day, cents_spent) VALUES ($1, $2)
-     ON CONFLICT (day) DO UPDATE SET cents_spent = ai_daily_budget.cents_spent + $2`,
-    [today(), costCents]
-  );
-  await query(
-    `INSERT INTO anon_spend (ip_hash, day, cents_spent, request_count) VALUES ($1, $2, $3, 1)
-     ON CONFLICT (ip_hash, day) DO UPDATE SET
-       cents_spent = anon_spend.cents_spent + $3,
-       request_count = anon_spend.request_count + 1`,
-    [ipHash, today(), costCents]
-  );
+function recordSpend({ costCents, ipHash }) {
+  pruneOldDays();
+  const d = today();
+  globalSpend.set(d, (globalSpend.get(d) || 0) + costCents);
+  const k = `${ipHash}|${d}`;
+  ipSpend.set(k, (ipSpend.get(k) || 0) + costCents);
 }
 
 // Middleware: enforce both global kill switch and per-IP daily cap.
-async function enforceCaps(req, res, next) {
-  try {
-    // Global kill switch first — if total spend hits ceiling, nobody gets service today.
-    const globalSpent = await getGlobalSpendToday();
-    if (globalSpent >= GLOBAL_DAILY_BUDGET_CENTS) {
-      return res.status(503).json({
-        error: 'AI Writing Coach is taking a break for the day — come back tomorrow!',
-        code: 'DAILY_BUDGET_EXCEEDED',
-      });
-    }
-    // Per-IP cap
-    const ipHash = hashIp(req.ip);
-    const ipSpent = await getIpSpendToday(ipHash);
-    if (ipSpent >= ANON_DAILY_CAP_CENTS) {
-      return res.status(429).json({
-        error: "You've used your free AI allowance for today. Come back tomorrow!",
-        code: 'DAILY_CAP_REACHED',
-        spent: ipSpent,
-        cap: ANON_DAILY_CAP_CENTS,
-      });
-    }
-    req.ipHash = ipHash;
-    next();
-  } catch (err) {
-    console.error('Cap check failed:', err);
-    res.status(500).json({ error: 'Internal error during cap check' });
+function enforceCaps(req, res, next) {
+  if (getGlobalSpendToday() >= GLOBAL_DAILY_BUDGET_CENTS) {
+    return res.status(503).json({
+      error: 'AI Writing Coach is taking a break for the day — come back tomorrow!',
+      code: 'DAILY_BUDGET_EXCEEDED',
+    });
   }
+  const ipHash = hashIp(req.ip);
+  const ipSpent = getIpSpendToday(ipHash);
+  if (ipSpent >= ANON_DAILY_CAP_CENTS) {
+    return res.status(429).json({
+      error: "You've used your free AI allowance for today. Come back tomorrow!",
+      code: 'DAILY_CAP_REACHED',
+      spent: ipSpent,
+      cap: ANON_DAILY_CAP_CENTS,
+    });
+  }
+  req.ipHash = ipHash;
+  next();
 }
 
 // ============================================================================
@@ -114,8 +102,7 @@ async function enforceCaps(req, res, next) {
 // Usage info for the UI progress bar
 router.get('/info', async (req, res) => {
   try {
-    let spent = 0;
-    try { spent = await getIpSpendToday(hashIp(req.ip)); } catch { spent = 0; }
+    const spent = getIpSpendToday(hashIp(req.ip));
     const models = Object.entries(MODELS)
       .filter(([key]) => ALLOWED_MODELS.includes(key))
       .map(([key, m]) => ({
@@ -169,9 +156,9 @@ router.post('/', limiter, enforceCaps, async (req, res) => {
 
     const result = await chat(messages, { model, context: context || null });
 
-    await recordSpend({ costCents: result.costCents, ipHash: req.ipHash });
+    recordSpend({ costCents: result.costCents, ipHash: req.ipHash });
 
-    const newSpent = await getIpSpendToday(req.ipHash);
+    const newSpent = getIpSpendToday(req.ipHash);
 
     res.json({
       text: result.text,

@@ -23,3 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local session artifacts — may contain secrets
+.handoffs/
+.claude/scheduled_tasks.lock
