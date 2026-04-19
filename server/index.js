@@ -12,6 +12,32 @@ const PORT = process.env.PORT || 3000;
 // Trust Railway's proxy so req.ip reflects the real client IP (for rate limits).
 app.set('trust proxy', 1);
 
+// Security headers (applied to every response — HTML, JSON, and static).
+// CSP is strict but permits the 4 LLM provider origins + localhost for Ollama,
+// so BYO-key users can hit their provider directly from the browser.
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",  // inline styles are used throughout React components
+      "img-src 'self' data: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com http://localhost:* http://127.0.0.1:*",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+    ].join('; ')
+  );
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  next();
+});
+
 // Body parsing — capped at 1mb. Chat route further clamps internally.
 app.use(express.json({ limit: '1mb' }));
 
