@@ -9,15 +9,14 @@ import SettingsModal from './SettingsModal';
 const CENTS_PER_TOKEN = 0.25;
 const centsToTokens = (cents) => Math.max(0, Math.round(cents / CENTS_PER_TOKEN));
 
-// The quick-switcher items. Disabled entries still render so users can see
-// what's coming. Selecting an unconfigured entry opens the settings modal
-// at the right tab.
+// The quick-switcher items. Selecting an unconfigured entry opens the
+// settings modal at the relevant tab.
 const BACKEND_MENU = [
-  { key: 'free',      label: 'Free (Haiku)',  status: 'ready' },
-  { key: 'anthropic', label: 'Your Claude',   status: 'byok-anthropic' },
-  { key: 'openai',    label: 'Your GPT',      status: 'soon' },
-  { key: 'gemini',    label: 'Your Gemini',   status: 'soon' },
-  { key: 'ollama',    label: 'Local model',   status: 'soon' },
+  { key: 'free',      label: 'Free (Haiku)',         model: 'Claude Haiku 4.5' },
+  { key: 'anthropic', label: 'Your Claude',          model: 'Claude Sonnet 4.5' },
+  { key: 'openai',    label: 'Your GPT',             model: 'GPT-4o' },
+  { key: 'gemini',    label: 'Your Gemini',          model: 'Gemini 2.0 Flash' },
+  { key: 'ollama',    label: 'Local (offline)',      model: 'Your local model' },
 ];
 
 function CopyBtn({ text, theme: t }) {
@@ -95,19 +94,10 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
 
   const pickBackend = (key) => {
     setDropdownOpen(false);
-    const item = BACKEND_MENU.find(b => b.key === key);
-    if (!item) return;
 
-    // "soon" = not built yet → open settings at the relevant tab
-    if (item.status === 'soon') {
+    // Not configured yet → bounce to the right settings tab
+    if (!settings.isBackendConfigured(key)) {
       setSettingsInitialTab(key === 'ollama' ? 'local' : 'byok');
-      setShowSettings(true);
-      return;
-    }
-
-    // BYO that needs a key configured
-    if (item.status === 'byok-anthropic' && !settings.getApiKey('anthropic')) {
-      setSettingsInitialTab('byok');
       setShowSettings(true);
       return;
     }
@@ -118,17 +108,11 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
   };
 
   const onSettingsSaved = () => {
-    // Re-read backend & keys in case user added one — flip to anthropic if now configured
-    const b = settings.getBackend();
-    setBackendState(b);
-    if (settings.getApiKey('anthropic')) {
-      // Auto-switch to anthropic if they just added their key on the byok tab
-      // and are currently on free
-      if (b === 'free') {
-        settings.setBackend('anthropic');
-        setBackendState('anthropic');
-      }
-    }
+    // Re-read backend in case anything changed
+    setBackendState(settings.getBackend());
+    // Intentionally do NOT auto-switch — the user might have saved a key
+    // without wanting to flip away from their current backend. They can pick
+    // from the dropdown when ready.
   };
 
   const send = async () => {
@@ -287,9 +271,8 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
                     }}>
                       {BACKEND_MENU.map(item => {
                         const isCurrent = item.key === backend;
-                        const isConfigured = item.status === 'ready'
-                          || (item.status === 'byok-anthropic' && !!settings.getApiKey('anthropic'));
-                        const isSoon = item.status === 'soon';
+                        const isConfigured = settings.isBackendConfigured(item.key);
+                        const needsSetup = !isConfigured;
                         return (
                           <button
                             key={item.key}
@@ -298,8 +281,7 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
                               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                               width: '100%', padding: '8px 10px', border: 'none', cursor: 'pointer',
                               background: isCurrent ? 'rgba(212,148,58,0.15)' : 'transparent',
-                              color: isSoon ? t.mutedText : t.text,
-                              fontSize: 11, textAlign: 'left', opacity: isSoon ? 0.6 : 1,
+                              color: t.text, fontSize: 11, textAlign: 'left',
                             }}
                           >
                             <span>
@@ -307,7 +289,7 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
                               {item.label}
                             </span>
                             <span style={{ fontSize: 9, color: t.mutedText }}>
-                              {isSoon ? 'soon' : !isConfigured ? 'add key' : ''}
+                              {needsSetup ? (item.key === 'ollama' ? 'configure' : 'add key') : ''}
                             </span>
                           </button>
                         );
@@ -384,18 +366,26 @@ export default function AIChatPanel({ theme: t, projectDrafts, projectId, onClos
               </div>
             )}
 
-            {/* BYO mode indicator */}
-            {backend === 'anthropic' && (
-              <div style={{
-                padding: '6px 12px',
-                fontSize: 10,
-                color: '#5A8F6A',
-                background: 'rgba(90,143,106,0.08)',
-                borderBottom: `1px solid ${t.panelBorder}`,
-              }}>
-                Using <b>your</b> Anthropic key → Claude Sonnet 4.5. Costs billed to your account.
-              </div>
-            )}
+            {/* BYO / Local mode indicator */}
+            {backend !== 'free' && (() => {
+              const item = BACKEND_MENU.find(b => b.key === backend);
+              if (!item) return null;
+              const isLocal = backend === 'ollama';
+              return (
+                <div style={{
+                  padding: '6px 12px', fontSize: 10,
+                  color: isLocal ? '#A8B4C4' : '#5A8F6A',
+                  background: isLocal ? 'rgba(168,180,196,0.08)' : 'rgba(90,143,106,0.08)',
+                  borderBottom: `1px solid ${t.panelBorder}`,
+                }}>
+                  {isLocal ? (
+                    <>Running <b>{item.model}</b> locally on your machine. No cost, no network.</>
+                  ) : (
+                    <>Using <b>your</b> key → {item.model}. Costs billed to your provider account.</>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Card creation flash */}
             {cardFlash && (

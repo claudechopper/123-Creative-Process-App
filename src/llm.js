@@ -41,16 +41,34 @@ export async function sendMessage({ backend, message, context, history = [] }) {
     { role: 'user', content: message },
   ];
   switch (backend) {
-    case 'free':
-      return sendFreeTier({ message, context, history });
-    case 'anthropic':
-      return sendAnthropic({ context, history: allHistory });
-    case 'openai':
-    case 'gemini':
-    case 'ollama':
-      throw new Error(`"${settings.backendLabel(backend)}" support is coming in the next update. Switch to Free or Your Claude in settings.`);
-    default:
-      throw new Error('Unknown backend. Check settings.');
+    case 'free':      return sendFreeTier({ message, context, history });
+    case 'anthropic': return sendAnthropic({ context, history: allHistory });
+    case 'openai':    return sendOpenAI({ context, history: allHistory });
+    case 'gemini':    return sendGemini({ context, history: allHistory });
+    case 'ollama':    return sendOllama({ context, history: allHistory });
+    default:          throw new Error('Unknown backend. Check settings.');
+  }
+}
+
+// Quick connectivity check for Ollama (used by the "Test" button in settings).
+// Returns { ok: true, models: [...] } or { ok: false, error: 'msg' }.
+export async function testOllama(url) {
+  try {
+    const res = await fetch(`${url.replace(/\/$/, '')}/api/tags`, {
+      method: 'GET',
+      referrerPolicy: 'no-referrer',
+    });
+    if (!res.ok) return { ok: false, error: `Ollama returned ${res.status}. Is it running?` };
+    const data = await res.json();
+    return { ok: true, models: (data.models || []).map(m => m.name) };
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        `Couldn't reach Ollama at ${url}. Make sure Ollama is running, and that you started it with OLLAMA_ORIGINS=* ` +
+        `(open a terminal, quit Ollama, then run: OLLAMA_ORIGINS='*' ollama serve). ` +
+        `Browser error: ${String(e?.message || e)}`,
+    };
   }
 }
 
@@ -142,4 +160,190 @@ async function sendAnthropic({ context, history }) {
   );
 
   return { text, model: data.model || ANTHROPIC_MODEL, costCents, inputTokens, outputTokens };
+}
+
+// -----------------------------------------------------------------------------
+// BYO OpenAI — direct browser → OpenAI
+// -----------------------------------------------------------------------------
+
+// gpt-4o pricing (USD per 1M): $2.50 input / $10 output.
+const OPENAI_MODEL = 'gpt-4o';
+const OPENAI_INPUT_PER_M = 2.5;
+const OPENAI_OUTPUT_PER_M = 10;
+
+async function sendOpenAI({ context, history }) {
+  const key = settings.getApiKey('openai');
+  if (!key) throw new Error('No OpenAI key set. Open Settings → Your key to add one.');
+
+  const messages = [
+    { role: 'system', content: buildSystem(context) },
+    ...history
+      .filter(m => m.content.trim())
+      .map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
+  ];
+
+  let res;
+  try {
+    res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        max_tokens: 1024,
+        messages,
+      }),
+    });
+  } catch (e) {
+    throw scrubError(e, key);
+  }
+
+  if (!res.ok) {
+    let body = null;
+    try { body = await res.json(); } catch {}
+    const msg = body?.error?.message || `OpenAI error ${res.status}`;
+    if (res.status === 401) throw scrubError(new Error('Your OpenAI key was rejected. Check it in Settings → Your key.'), key);
+    if (res.status === 429) throw scrubError(new Error('OpenAI rate-limited your key. Wait a moment and try again.'), key);
+    throw scrubError(new Error(msg), key);
+  }
+
+  let data;
+  try { data = await res.json(); } catch (e) { throw scrubError(e, key); }
+
+  const text = data.choices?.[0]?.message?.content || '';
+  const inputTokens = data.usage?.prompt_tokens || 0;
+  const outputTokens = data.usage?.completion_tokens || 0;
+  const costCents = Math.round(
+    (inputTokens * OPENAI_INPUT_PER_M + outputTokens * OPENAI_OUTPUT_PER_M) / 10000
+  );
+
+  return { text, model: data.model || OPENAI_MODEL, costCents, inputTokens, outputTokens };
+}
+
+// -----------------------------------------------------------------------------
+// BYO Gemini — direct browser → Google Generative Language API
+// -----------------------------------------------------------------------------
+
+// gemini-2.0-flash pricing (USD per 1M): $0.10 input / $0.40 output (very cheap).
+const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_INPUT_PER_M = 0.10;
+const GEMINI_OUTPUT_PER_M = 0.40;
+
+async function sendGemini({ context, history }) {
+  const key = settings.getApiKey('gemini');
+  if (!key) throw new Error('No Google Gemini key set. Open Settings → Your key to add one.');
+
+  // Gemini wants role = 'user' | 'model' (not 'assistant'), and uses "parts".
+  const contents = history
+    .filter(m => m.content.trim())
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
+
+  const systemInstruction = { parts: [{ text: buildSystem(context) }] };
+
+  let res;
+  try {
+    // NOTE: Gemini auth is a query param. We pass via x-goog-api-key header
+    // (also supported) so the key never appears in URLs, logs, or Referer.
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': key,
+        },
+        referrerPolicy: 'no-referrer',
+        body: JSON.stringify({
+          contents,
+          systemInstruction,
+          generationConfig: { maxOutputTokens: 1024 },
+        }),
+      }
+    );
+  } catch (e) {
+    throw scrubError(e, key);
+  }
+
+  if (!res.ok) {
+    let body = null;
+    try { body = await res.json(); } catch {}
+    const msg = body?.error?.message || `Gemini error ${res.status}`;
+    if (res.status === 401 || res.status === 403) throw scrubError(new Error('Your Gemini key was rejected. Check it in Settings → Your key.'), key);
+    if (res.status === 429) throw scrubError(new Error('Gemini rate-limited your key. Wait a moment and try again.'), key);
+    throw scrubError(new Error(msg), key);
+  }
+
+  let data;
+  try { data = await res.json(); } catch (e) { throw scrubError(e, key); }
+
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+  const inputTokens = data.usageMetadata?.promptTokenCount || 0;
+  const outputTokens = data.usageMetadata?.candidatesTokenCount || 0;
+  const costCents = Math.round(
+    (inputTokens * GEMINI_INPUT_PER_M + outputTokens * GEMINI_OUTPUT_PER_M) / 10000
+  );
+
+  return { text, model: GEMINI_MODEL, costCents, inputTokens, outputTokens };
+}
+
+// -----------------------------------------------------------------------------
+// Local Ollama — direct browser → localhost:11434
+// -----------------------------------------------------------------------------
+// Uses Ollama's OpenAI-compatible endpoint (/v1/chat/completions) so the
+// response shape matches the OpenAI path. User must start Ollama with
+// OLLAMA_ORIGINS='*' for browser CORS to work.
+
+async function sendOllama({ context, history }) {
+  const { url, model } = settings.getOllamaConfig();
+  if (!url || !model) throw new Error('Ollama URL or model missing. Open Settings → Local model to configure.');
+
+  const messages = [
+    { role: 'system', content: buildSystem(context) },
+    ...history
+      .filter(m => m.content.trim())
+      .map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
+  ];
+
+  const endpoint = `${url.replace(/\/$/, '')}/v1/chat/completions`;
+
+  let res;
+  try {
+    res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify({ model, messages, max_tokens: 1024 }),
+    });
+  } catch (e) {
+    throw new Error(
+      `Couldn't reach Ollama at ${url}. Make sure Ollama is running and started with OLLAMA_ORIGINS='*'. ` +
+      `(Open a terminal, quit Ollama, then run: OLLAMA_ORIGINS='*' ollama serve.) ` +
+      `Browser error: ${String(e?.message || e)}`
+    );
+  }
+
+  if (!res.ok) {
+    let body = null;
+    try { body = await res.json(); } catch {}
+    if (res.status === 404) {
+      throw new Error(`Model "${model}" not found. Run: ollama pull ${model}`);
+    }
+    throw new Error(body?.error?.message || body?.error || `Ollama error ${res.status}`);
+  }
+
+  let data;
+  try { data = await res.json(); } catch (e) { throw new Error('Ollama returned an unreadable response.'); }
+
+  const text = data.choices?.[0]?.message?.content || '';
+  // Local = free. Report costCents: 0.
+  const inputTokens = data.usage?.prompt_tokens || 0;
+  const outputTokens = data.usage?.completion_tokens || 0;
+
+  return { text, model, costCents: 0, inputTokens, outputTokens };
 }
