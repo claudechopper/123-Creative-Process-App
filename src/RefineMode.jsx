@@ -244,13 +244,7 @@ export default function RefineMode({ draft, onNavigate }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {/* AI Writing Coach */}
           {!showAIChat && (
-            <button onClick={() => {
-              if (user && (!user.tier || user.tier === 'free')) {
-                alert('AI Writing Coach requires a paid plan. Upgrade to get started!');
-                return;
-              }
-              setShowAIChat(true);
-            }} style={{
+            <button onClick={() => setShowAIChat(true)} style={{
               background: t.panel, border: `1px solid ${t.panelBorder}`, borderRadius: 10,
               padding: '8px 12px', marginBottom: 8, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
@@ -258,7 +252,7 @@ export default function RefineMode({ draft, onNavigate }) {
             }}>
               <span>&#10024;</span> Writing Coach
               <span style={{ fontSize: 9, color: t.mutedText, fontWeight: 400, marginLeft: 'auto' }}>
-                {(user && user.tier && user.tier !== 'free') ? 'Click to open' : !user ? 'Free trial' : '(Premium)'}
+                Click to open
               </span>
             </button>
           )}
